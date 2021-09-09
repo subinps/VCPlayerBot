@@ -1,0 +1,8 @@
+git+https://github.com/pyrogram/pyrogram@master
+py-tgcalls
+tgcrypto
+pafy
+ffmpeg-python
+youtube_dl
+youtube_search_python
+youtube_search
