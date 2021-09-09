@@ -100,10 +100,26 @@ async def skip():
 
 
 async def restart():
+    process = Config.FFMPEG_PROCESSES.get(Config.CHAT)
+    if process:
+        try:
+            process.send_signal(SIGINT)
+        except subprocess.TimeoutExpired:
+            process.kill()
+        except Exception as e:
+            LOGGER.error(e)
+            pass
+        del Config.FFMPEG_PROCESSES[Config.CHAT]
+    try:
+        await group_call.leave_group_call(Config.CHAT)
+        await sleep(2)
+    except Exception as e:
+        LOGGER.error(e)
     if not Config.playlist:
         await start_stream()
         return
     LOGGER.warning(f"- START PLAYING: {Config.playlist[0][1]}")
+    await sleep(2)
     await play()
     LOGGER.warning("Restarting Playout")
     if len(Config.playlist) <= 1:
@@ -114,7 +130,7 @@ async def download(song):
     if song[3] == "telegram":
         if not Config.GET_FILE.get(song[5]):
             try:
-                original_file = await bot.download_media(song[2], progress=progress)
+                original_file = await bot.download_media(song[2])
                 Config.GET_FILE[song[5]]=original_file
             except Exception as e:
                 LOGGER.error(e)
@@ -243,7 +259,11 @@ async def join_call(audio, video, width, height):
         if old:
             for file in old:
                 os.remove(f"./downloads/{file}")
-            del Config.GET_FILE["old"]
+            try:
+                del Config.GET_FILE["old"]
+            except:
+                LOGGER.error("Error in deletion")
+                pass
         await send_playlist()
 
 
@@ -515,8 +535,6 @@ def stop_and_restart():
     time.sleep(10)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-def progress(current, total):
-    LOGGER.warning(f"downloading media from telegram. :  Completed -{current * 100 / total:.1f}%")
 
 async def update():
     await leave_call()
