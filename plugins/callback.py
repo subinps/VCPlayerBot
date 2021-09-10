@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import get_admins, get_buttons, get_playlist_str, pause, restart, resume, shuffle_playlist, skip
+from utils import get_admins, get_buttons, get_playlist_str, pause, restart_playout, resume, shuffle_playlist, skip
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import MessageNotModified
 from pyrogram import Client
@@ -95,7 +95,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
         if not Config.playlist:
             await query.answer("No songs in playlist", show_alert=True)
         else:
-            await restart()
+            await restart_playout()
             await sleep(1)
         pl=await get_playlist_str()
         try:

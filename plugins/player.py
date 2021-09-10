@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import download, get_admins, is_admin, get_buttons, get_link, import_play_list, leave_call, play, get_playlist_str, shuffle_playlist, start_stream, stream_from_link
+from utils import download, get_admins, is_admin, get_buttons, get_link, import_play_list, leave_call, play, get_playlist_str, send_playlist, shuffle_playlist, start_stream, stream_from_link
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from youtube_search import YoutubeSearch
 from pyrogram import Client, filters
@@ -46,7 +46,7 @@ async def add_to_playlist(_, message: Message):
         m_video = message.reply_to_message.document
         type='video'
         if not "video" in m_video.mime_type:
-            return await message.reply("The given file is invalid")
+            return await msg.edit("The given file is invalid")
     else:
         if message.reply_to_message:
             link=message.reply_to_message.text
@@ -73,8 +73,9 @@ async def add_to_playlist(_, message: Message):
     if type=="video":
         now = datetime.now()
         nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
-        data={1:m_video.file_name, 2:m_video.file_id, 3:"telegram", 4:user, 5:f"{nyav}_{message.from_user.id}"}
+        data={1:m_video.file_name, 2:m_video.file_id, 3:"telegram", 4:user, 5:f"{nyav}_{m_video.file_size}"}
         Config.playlist.append(data)
+        await msg.edit("Media added to playlist")
     if type=="youtube" or type=="query":
         if type=="youtube":
             msg = await message.reply_text("⚡️ **Fetching Video From YouTube...**")
@@ -113,16 +114,19 @@ async def add_to_playlist(_, message: Message):
         nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
         data={1:title, 2:url, 3:"youtube", 4:user, 5:f"{nyav}_{message.from_user.id}"}
         Config.playlist.append(data)
+        await msg.edit(f"[{title}]({url}) added to playist", disable_web_page_preview=True)
     if len(Config.playlist) == 1:
         m_status = await msg.edit("Downloading and Processing...")
-        await download(Config.playlist[0])
+        await download(Config.playlist[0], m_status)
         await play()
         await m_status.delete()
+    else:
+        await send_playlist()  
     pl=await get_playlist_str()
     if message.chat.type == "private":
         await message.reply(pl, reply_markup=await get_buttons() ,disable_web_page_preview=True)        
     elif not Config.LOG_GROUP and message.chat.type == "supergroup":
-        await message.reply(pl, disable_web_page_preview=True, reply_markup=await get_buttons())      
+        await message.reply(pl, disable_web_page_preview=True, reply_markup=await get_buttons())          
     for track in Config.playlist[:2]:
         await download(track)
 
@@ -207,7 +211,7 @@ async def stream(client, m: Message):
     
 
 
-admincmds=["yplay", "leave", "pause", "resume", "skip", "restart", "volume", "shuffle", "clearplaylist", "export", "import", "update", 'replay', 'logs', f'logs@{Config.BOT_USERNAME}', f"replay@{Config.BOT_USERNAME}", f"yplay@{Config.BOT_USERNAME}", f"leave@{Config.BOT_USERNAME}", f"pause@{Config.BOT_USERNAME}", f"resume@{Config.BOT_USERNAME}", f"skip@{Config.BOT_USERNAME}", f"restart@{Config.BOT_USERNAME}", f"volume@{Config.BOT_USERNAME}", f"shuffle@{Config.BOT_USERNAME}", f"clearplaylist@{Config.BOT_USERNAME}", f"export@{Config.BOT_USERNAME}", f"import@{Config.BOT_USERNAME}", f"update@{Config.BOT_USERNAME}"]
+admincmds=["yplay", "leave", "pause", "resume", "skip", "restart", "volume", "shuffle", "clearplaylist", "export", "import", "update", 'replay', 'logs', 'stream', f'stream@{Config.BOT_USERNAME}', f'logs@{Config.BOT_USERNAME}', f"replay@{Config.BOT_USERNAME}", f"yplay@{Config.BOT_USERNAME}", f"leave@{Config.BOT_USERNAME}", f"pause@{Config.BOT_USERNAME}", f"resume@{Config.BOT_USERNAME}", f"skip@{Config.BOT_USERNAME}", f"restart@{Config.BOT_USERNAME}", f"volume@{Config.BOT_USERNAME}", f"shuffle@{Config.BOT_USERNAME}", f"clearplaylist@{Config.BOT_USERNAME}", f"export@{Config.BOT_USERNAME}", f"import@{Config.BOT_USERNAME}", f"update@{Config.BOT_USERNAME}"]
 
 @Client.on_message(filters.command(admincmds) & ~admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def notforu(_, m: Message):

@@ -40,6 +40,8 @@ import json
 import time
 import sys
 import os
+import math
+import asyncio
 
 async def play():
     song=Config.playlist[0]    
@@ -126,11 +128,21 @@ async def restart():
         return
     await download(Config.playlist[1])
 
-async def download(song):
+async def restart_playout():
+    if not Config.playlist:
+        await start_stream()
+        return
+    LOGGER.warning(f"RESTART PLAYING: {Config.playlist[0][1]}")
+    await play()
+    if len(Config.playlist) <= 1:
+        return
+    await download(Config.playlist[1])
+
+async def download(song, msg=None):
     if song[3] == "telegram":
         if not Config.GET_FILE.get(song[5]):
-            try:
-                original_file = await bot.download_media(song[2])
+            try: 
+                original_file = await bot.download_media(song[2], progress=progress_bar, progress_args=(int((song[5].split("_"))[1]), time.time(), msg))
                 Config.GET_FILE[song[5]]=original_file
             except Exception as e:
                 LOGGER.error(e)
@@ -240,19 +252,14 @@ async def join_call(audio, video, width, height):
         not os.path.exists(video):
         await skip()
     if Config.CALL_STATUS:
-        al = group_call.active_calls
-        if al and Config.CHAT in [t.chat_id for t in al]:
-            play=await change_file(audio, video, width, height)
-        else:
-            play=await join_and_play(audio, video, width, height)
+        play=await change_file(audio, video, width, height)
     else:
         play=await join_and_play(audio, video, width, height)
     if play == False:
         await sleep(1)
         await join_call(audio, video, width, height)
-    await sleep(2)
-    al = group_call.active_calls
-    if not Config.CHAT in [t.chat_id for t in al]:
+    await sleep(1)
+    if str((group_call.get_call(Config.CHAT)).status) != "playing":
         await restart()
     else:
         old=Config.GET_FILE.get("old")
@@ -324,7 +331,7 @@ async def join_and_play(audio, video, width, height):
                 )
                 )
             await sleep(2)
-            await restart()
+            await restart_playout()
         except Exception as e:
             LOGGER.error(f"Unable to start new GroupCall :- {e}")
             pass
@@ -355,7 +362,7 @@ async def pause():
         await group_call.pause_stream(Config.CHAT)
         return True
     except GroupCallNotFound:
-        await restart()
+        await restart_playout()
         return False
 
 async def resume():
@@ -363,7 +370,7 @@ async def resume():
         await group_call.resume_stream(Config.CHAT)
         return True
     except GroupCallNotFound:
-        await restart()
+        await restart_playout()
         return False
 
 
@@ -371,7 +378,7 @@ async def volume(volume):
     try:
         await group_call.change_volume_call(Config.CHAT, volume)
     except BadRequest:
-        await restart()
+        await restart_playout()
     
 
 async def shuffle_playlist():
@@ -523,6 +530,51 @@ async def get_buttons():
             )
     return reply_markup
 
+async def progress_bar(current, zero, total, start, msg):
+    now = time.time()
+    if total == 0:
+        return
+    if round((now - start) % 3) == 0 or current == total:
+        speed = current / (now - start)
+        percentage = current * 100 / total
+        time_to_complete = round(((total - current) / speed)) * 1000
+        time_to_complete = TimeFormatter(time_to_complete)
+        progressbar = "[{0}{1}]".format(\
+            ''.join(["▰" for i in range(math.floor(percentage / 5))]),
+            ''.join(["▱" for i in range(20 - math.floor(percentage / 5))])
+            )
+        current_message = f"**Downloading** {round(percentage, 2)}% \n{progressbar}\n⚡️ **Speed**: {humanbytes(speed)}/s\n⬇️ **Downloaded**: {humanbytes(current)} / {humanbytes(total)}\n🕰 **Time Left**: {time_to_complete}"
+        if msg:
+            try:
+                await msg.edit(text=current_message)
+            except:
+                pass
+        LOGGER.warning(current_message)
+
+
+def humanbytes(size):
+    if not size:
+        return ""
+    power = 2**10
+    n = 0
+    Dic_powerN = {0: ' ', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
+    while size > power:
+        size /= power
+        n += 1
+    return str(round(size, 2)) + " " + Dic_powerN[n] + 'B'
+
+
+def TimeFormatter(milliseconds: int) -> str:
+    seconds, milliseconds = divmod(int(milliseconds), 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+    tmp = ((str(days) + " days, ") if days else "") + \
+        ((str(hours) + " hours, ") if hours else "") + \
+        ((str(minutes) + " min, ") if minutes else "") + \
+        ((str(seconds) + " sec, ") if seconds else "") + \
+        ((str(milliseconds) + " millisec, ") if milliseconds else "")
+    return tmp[:-2]
 
 def get_pause(status):
     if status == True:
@@ -566,7 +618,7 @@ async def handler(client: PyTgCalls, update: Update):
                 await start_stream()
             else:
                 await skip()          
-            await sleep(15) #wait for max 10 sec
+            await sleep(15) #wait for max 15 sec
             try:
                 del Config.STREAM_END["STATUS"]
             except:

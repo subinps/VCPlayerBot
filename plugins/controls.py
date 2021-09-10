@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import get_playlist_str, get_admins, is_admin, restart, skip, pause, resume, volume, get_buttons, is_admin
+from utils import get_playlist_str, get_admins, is_admin, restart_playout, skip, pause, resume, volume, get_buttons, is_admin
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from config import Config
@@ -104,4 +104,4 @@ async def replay_playout(client, m: Message):
     if not Config.CALL_STATUS:
         return await m.reply("Not Playing anything.")
     await m.reply_text(f"Replaying from begining")
-    await restart()
+    await restart_playout()

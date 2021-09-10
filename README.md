@@ -54,7 +54,7 @@ python3 main.py
 - Starts Radio after if no songs in playlist.
 - Automatically downloads audio for the first two tracks in the playlist to ensure smooth playing
 - Automatic restart even if heroku restarts.
-- Support exporing and importing playlist.
+- Support exporting and importing playlist.
 
 ### Note
 

@@ -3,3 +3,4 @@
 *.log
 *.session
 *.session-journal
+test.py
