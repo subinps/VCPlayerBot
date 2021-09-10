@@ -87,6 +87,7 @@ class Config:
     STREAM_END={}
     CALL_STATUS=False
     PAUSE=False
+    STREAM_LINK=False
     HELP="""
 <b>How Can I Play Video?</b>
 

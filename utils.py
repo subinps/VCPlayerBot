@@ -58,6 +58,8 @@ async def play():
         return False
     audio_file, video_file, width, height = await get_raw_files(file)
     await sleep(1)
+    if Config.STREAM_LINK:
+        Config.STREAM_LINK=False
     await join_call(audio_file, video_file, width, height)
 
 async def get_link(file):
@@ -80,7 +82,10 @@ async def get_link(file):
     return url
 
 async def skip():
-    if not Config.playlist:
+    if Config.STREAM_LINK and len(Config.playlist) == 0:
+        await stream_from_link()
+        return
+    elif not Config.playlist:
         await start_stream()
         return
     old_track = Config.playlist.pop(0)
@@ -169,6 +174,7 @@ async def stream_from_link(link):
     raw_audio, raw_video, width, height = await get_raw_files(link)
     if Config.playlist:
         Config.playlist.clear()
+    Config.STREAM_LINK=link
     await join_call(raw_audio, raw_video, width, height)
 
 async def get_raw_files(link):
@@ -259,7 +265,14 @@ async def join_call(audio, video, width, height):
         await sleep(1)
         await join_call(audio, video, width, height)
     await sleep(1)
-    if str((group_call.get_call(Config.CHAT)).status) != "playing":
+    try:
+        call=group_call.get_call(Config.CHAT)
+    except GroupCallNotFound:
+        return await restart()
+    except Exception as e:
+        LOGGER.warning(e)
+        return await restart()
+    if str(call.status) != "playing":
         await restart()
     else:
         old=Config.GET_FILE.get("old")
@@ -355,6 +368,8 @@ async def leave_call():
     except Exception as e:
         LOGGER.error(e)
     Config.playlist.clear()
+    if Config.STREAM_LINK:
+        Config.STREAM_LINK=False
     Config.CALL_STATUS=False
 
 async def pause():
@@ -614,7 +629,9 @@ async def handler(client: PyTgCalls, update: Update):
     if str(update) == "STREAM_AUDIO_ENDED" or str(update) == "STREAM_VIDEO_ENDED":
         if not Config.STREAM_END.get("STATUS"):
             Config.STREAM_END["STATUS"]=str(update)
-            if not Config.playlist:
+            if Config.STREAM_LINK and len(Config.playlist) == 0:
+                await stream_from_link(Config.STREAM_LINK)
+            elif not Config.playlist:
                 await start_stream()
             else:
                 await skip()          
