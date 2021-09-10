@@ -211,6 +211,7 @@ async def get_raw_files(link):
     width, height = await get_height_and_width(link)
     if not width or \
         not height:
+        Config.STREAM_LINK=False
         await skip()
     command = ["ffmpeg", "-y", "-i", link, "-f", "s16le", "-ac", "1", "-ar", "48000", raw_audio, "-f", "rawvideo", '-r', '30', '-pix_fmt', 'yuv420p', '-vf', f'scale={width}:{height}', raw_video]
     ffmpeg_log = open("ffmpeg.txt", "w+")
