@@ -76,7 +76,7 @@ async def get_link(file):
                 url=s.url
                 continue
     except Exception as e:
-        LOGGER.error(e)
+        LOGGER.error(f"Errors occured while getting link from youtube video {e}")
         await skip()
         return False
     return url
@@ -185,7 +185,7 @@ async def get_raw_files(link):
         except subprocess.TimeoutExpired:
             process.kill()
         except Exception as e:
-            LOGGER.error(e)
+            LOGGER.error(f"Error while converting to raw files {e}")
             pass
         del Config.FFMPEG_PROCESSES[Config.CHAT]
     Config.GET_FILE["old"] = os.listdir("./downloads")
@@ -219,20 +219,21 @@ async def edit_title():
         title = "Live Stream"
     else:       
         title = Config.playlist[0][1]
-    chat = await USER.resolve_peer(Config.CHAT)
-    full_chat=await USER.send(
-        GetFullChannel(
-            channel=InputChannel(
-                channel_id=chat.channel_id,
-                access_hash=chat.access_hash,
-                ),
-            ),
-        )
-    edit = EditGroupCallTitle(call=full_chat.full_chat.call, title=title)
+    
     try:
+        chat = await USER.resolve_peer(Config.CHAT)
+        full_chat=await USER.send(
+            GetFullChannel(
+                channel=InputChannel(
+                    channel_id=chat.channel_id,
+                    access_hash=chat.access_hash,
+                    ),
+                ),
+            )
+        edit = EditGroupCallTitle(call=full_chat.full_chat.call, title=title)
         await USER.send(edit)
     except Exception as e:
-        LOGGER.error("Errors Occured while editing title", e)
+        LOGGER.error(f"Errors Occured while editing title - {e}")
         pass
 
 
@@ -366,7 +367,7 @@ async def leave_call():
     try:
         await group_call.leave_group_call(Config.CHAT)
     except Exception as e:
-        LOGGER.error(e)
+        LOGGER.error(f"Errors while leaving call {e}")
     Config.playlist.clear()
     if Config.STREAM_LINK:
         Config.STREAM_LINK=False
@@ -379,6 +380,9 @@ async def pause():
     except GroupCallNotFound:
         await restart_playout()
         return False
+    except Exception as e:
+        LOGGER.error(f"Errors Occured while pausing -{e}")
+        return False
 
 async def resume():
     try:
@@ -387,6 +391,10 @@ async def resume():
     except GroupCallNotFound:
         await restart_playout()
         return False
+    except Exception as e:
+        LOGGER.error(f"Errors Occured while resuming -{e}")
+        return False
+    
 
 
 async def volume(volume):
@@ -394,6 +402,8 @@ async def volume(volume):
         await group_call.change_volume_call(Config.CHAT, volume)
     except BadRequest:
         await restart_playout()
+    except Exception as e:
+        LOGGER.error(f"Errors Occured while changing volume Error -{e}")
     
 
 async def shuffle_playlist():
