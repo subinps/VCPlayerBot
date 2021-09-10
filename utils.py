@@ -212,7 +212,7 @@ async def get_raw_files(link):
     if not width or \
         not height:
         await skip()
-    command = ["ffmpeg", "-y", "-i", link, "-f", "s16le", "-ac", "1", "-ar", "48000", raw_audio, "-f", "rawvideo", '-r', '25', '-pix_fmt', 'yuv420p', '-vf', f'scale={width}:{height}', raw_video]
+    command = ["ffmpeg", "-y", "-i", link, "-f", "s16le", "-ac", "1", "-ar", "48000", raw_audio, "-f", "rawvideo", '-r', '30', '-pix_fmt', 'yuv420p', '-vf', f'scale={width}:{height}', raw_video]
     ffmpeg_log = open("ffmpeg.txt", "w+")
     process = await asyncio.create_subprocess_exec(
         *command,
@@ -316,7 +316,7 @@ async def change_file(audio, video, width, height):
                 VideoParameters(
                     width=width,
                     height=height,
-                    frame_rate=25,
+                    frame_rate=30,
                 ),
             ),
             )
@@ -341,7 +341,7 @@ async def join_and_play(audio, video, width, height):
                 VideoParameters(
                     width=width,
                     height=height,
-                    frame_rate=25,
+                    frame_rate=30,
                 ),
                 
             ),
