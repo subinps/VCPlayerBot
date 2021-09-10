@@ -206,8 +206,8 @@ async def stream(client, m: Message):
             return await m.reply("This is an invalid link.")
     else:
         stream_link=link
-    await m.reply("Streaming Started.")
-    await stream_from_link(link)
+    await m.reply(f"[Streaming]({stream_link}) Started.", disable_web_page_preview=True)
+    await stream_from_link(stream_link)
     
 
 
