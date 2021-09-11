@@ -204,10 +204,10 @@ async def get_raw_files(link):
     new = datetime.now().strftime("%d-%m-%Y-%H:%M:%S")
     raw_audio=f"./downloads/{new}_audio.raw"
     raw_video=f"./downloads/{new}_video.raw"
-    #if not os.path.exists(raw_audio):
-        #os.mkfifo(raw_audio)
-    #if not #os.path.exists(raw_video):
-        #os.mkfifo(raw_video)
+    if not os.path.exists(raw_audio):
+        os.mkfifo(raw_audio)
+    if not os.path.exists(raw_video):
+        os.mkfifo(raw_video)
     width, height = await get_height_and_width(link)
     if not width or \
         not height:
