@@ -195,19 +195,19 @@ async def get_raw_files(link):
         try:
             process.send_signal(SIGINT)
         except subprocess.TimeoutExpired:
-            process.kill()
+            process.terminate()
         except Exception as e:
-            LOGGER.error(f"Error while converting to raw files {e}")
+            LOGGER.error(f"Error while terminating ffmpeg {e}")
             pass
         del Config.FFMPEG_PROCESSES[Config.CHAT]
     Config.GET_FILE["old"] = os.listdir("./downloads")
     new = datetime.now().strftime("%d-%m-%Y-%H:%M:%S")
     raw_audio=f"./downloads/{new}_audio.raw"
     raw_video=f"./downloads/{new}_video.raw"
-    if not os.path.exists(raw_audio):
-        os.mkfifo(raw_audio)
-    if not os.path.exists(raw_video):
-        os.mkfifo(raw_video)
+    #if not os.path.exists(raw_audio):
+        #os.mkfifo(raw_audio)
+    #if not os.path.exists(raw_video):
+        #os.mkfifo(raw_video)
     width, height = await get_height_and_width(link)
     if not width or \
         not height:

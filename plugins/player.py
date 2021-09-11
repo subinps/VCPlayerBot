@@ -50,7 +50,7 @@ async def add_to_playlist(_, message: Message):
     else:
         if message.reply_to_message:
             link=message.reply_to_message.text
-            regex = r"^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+"
+            regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
             match = re.match(regex,link)
             if match:
                 type="youtube"
@@ -58,7 +58,7 @@ async def add_to_playlist(_, message: Message):
         elif " " in message.text:
             text = message.text.split(" ", 1)
             query = text[1]
-            regex = r"^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+"
+            regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
             match = re.match(regex,query)
             if match:
                 type="youtube"
@@ -198,7 +198,7 @@ async def stream(client, m: Message):
         link = text[1]
     else:
         return await m.reply("Provide a link to stream!")
-    regex = r"^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+"
+    regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
     match = re.match(regex,link)
     if match:
         stream_link=await get_link(link)
