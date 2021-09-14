@@ -12,11 +12,10 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
+from logger import LOGGER
 try:
    import os
    import re
-   from logger import LOGGER
    import heroku3
 
 except ModuleNotFoundError:
@@ -150,6 +149,16 @@ These are commands to control player.
     Command: <b>/shuffle</b>
  7. Clear the current playlist queue.
     Command: <b>/clearplaylist</b>
+ 8. Seek the video.
+    Command: <b>/seek</b>
+    <i>You can pass number of seconds to be skiped. Example: /seek 10 to skip 10 sec. /seek -10 to rewind 10 sec.
+ 9. Mute the player.
+    Command: <b>/mute</b>
+ 10. Unmute the player.
+    Command : <b>/unmute</b>
+ 11. Shows the playlist.
+    Command: <b>/playlist</b> 
+    <i>Use /player to show with control buttons</i>
 
 <b>How Can I Export My Current Playlist?</b>
  1. Command: <b>/export</b>
