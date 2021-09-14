@@ -13,9 +13,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import re
-from logger import LOGGER
+try:
+   import os
+   import re
+   from logger import LOGGER
+   import heroku3
+
+except ModuleNotFoundError:
+    import os
+    import sys
+    import subprocess
+    file=os.path.abspath("requirements.txt")
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', file, '--upgrade'])
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
 
 Y_PLAY=False
 YSTREAM=False
@@ -42,7 +53,8 @@ else:
 class Config:
     #Telegram API Stuffs
     ADMIN = os.environ.get("ADMINS", '')
-    ADMINS = [int(admin) for admin in (ADMIN).split()]
+    SUDO = [int(admin) for admin in (ADMIN).split()] # Exclusive for heroku vars configuration.
+    ADMINS = [int(admin) for admin in (ADMIN).split()] #group admins will be appended to this list.
     API_ID = int(os.environ.get("API_ID", ''))
     API_HASH = os.environ.get("API_HASH", "")
     BOT_TOKEN = os.environ.get("BOT_TOKEN", "")     
@@ -61,6 +73,17 @@ class Config:
     STREAM_URL=finalurl
     YPLAY=Y_PLAY
     YSTREAM=YSTREAM
+    
+
+    #heroku
+    API_KEY=os.environ.get("HEROKU_API_KEY", None)
+    APP_NAME=os.environ.get("HEROKU_APP_NAME", None)
+    if not API_KEY or \
+       not APP_NAME:
+       HEROKU_APP=None
+    else:
+       HEROKU_APP=heroku3.from_key(API_KEY).apps()[APP_NAME]
+
 
     #Optional Configuration
     SHUFFLE=bool(os.environ.get("SHUFFLE", True))
@@ -75,19 +98,20 @@ class Config:
     if EDIT_TITLE == "NO":
         EDIT_TITLE=None
         LOGGER.warning("Title Editing turned off")
-    
 
     #others
     ADMIN_CACHE=False
     playlist=[]
     msg = {}
-    CONV = {}
     FFMPEG_PROCESSES={}
     GET_FILE={}
+    DATA={}
     STREAM_END={}
     CALL_STATUS=False
     PAUSE=False
+    MUTED=False
     STREAM_LINK=False
+    DUR={}
     HELP="""
 <b>How Can I Play Video?</b>
 
