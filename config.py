@@ -169,6 +169,9 @@ These are commands to control player.
     Command: <b>/update</b> or <b>/restart</b>
  2. Get Logs
     Command: <b>/logs</b>
+ 3. Set / Change heroku config vars.
+    Command: <b>/env</b>
+    <i>Set a new config var or change existing one or delete existing one. Example: /env CHAT=-100120202002 to change(if exist else set as new) CHAT config to -100120202002. If no value is passed, the var will be deleted. Example /env REPLY_MESSAGE= , this will delete the REPLY_MESSAGE var.</i>
 
 <b>How Can I Stream In My Group</b>
   <i>The source code of this bot is public and can be found at <a href=https://github.com/subinps/VCPlayerBot>VCPlayerBot.</a>\nYou can deploy your own bot and use in your group.</i>
