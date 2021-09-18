@@ -72,7 +72,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
         if Config.playlist:
             title=f"<b>{Config.playlist[0][1]}</b>"
         elif Config.STREAM_LINK:
-            title=f"<b>Stream Using [Url]({Config.DATA['FILE_DATA']['file']}</b>)"
+            title=f"<b>Stream Using [Url]({Config.DATA['FILE_DATA']['file']})</b>"
         else:
             title=f"<b>Streaming Startup [stream]({Config.STREAM_URL})</b>"
 
