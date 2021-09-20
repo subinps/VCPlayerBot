@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import download, get_admins, is_admin, get_buttons, get_link, import_play_list, leave_call, play, get_playlist_str, send_playlist, shuffle_playlist, start_stream, stream_from_link
+from utils import delete, download, get_admins, is_admin, get_buttons, get_link, import_play_list, leave_call, play, get_playlist_str, send_playlist, shuffle_playlist, start_stream, stream_from_link
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from youtube_search import YoutubeSearch
 from pyrogram import Client, filters
@@ -32,7 +32,8 @@ async def add_to_playlist(_, message: Message):
     if Config.ADMIN_ONLY == "Y":
         admins = await get_admins(Config.CHAT)
         if message.from_user.id not in admins:
-            await message.reply_sticker("CAADBQADsQIAAtILIVYld1n74e3JuQI")
+            k=await message.reply_sticker("CAADBQADsQIAAtILIVYld1n74e3JuQI")
+            await delete(k)
             return
     type=""
     yturl=""
@@ -46,7 +47,7 @@ async def add_to_playlist(_, message: Message):
         m_video = message.reply_to_message.document
         type='video'
         if not "video" in m_video.mime_type:
-            return await msg.edit("The given file is invalid")
+            k=await msg.edit("The given file is invalid")
     else:
         if message.reply_to_message:
             link=message.reply_to_message.text
@@ -88,10 +89,11 @@ async def add_to_playlist(_, message: Message):
                 url = f"https://youtube.com{results[0]['url_suffix']}"
                 title = results[0]["title"][:40]
             except Exception as e:
-                await msg.edit(
+                k=await msg.edit(
                     "Song not found.\nTry inline mode.."
                 )
                 LOGGER.error(str(e))
+                await delete(k)
                 return
         else:
             return
@@ -104,10 +106,11 @@ async def add_to_playlist(_, message: Message):
             info = ydl.extract_info(url, False)
         except Exception as e:
             LOGGER.error(e)
-            await msg.edit(
+            k=await msg.edit(
                 f"YouTube Download Error ❌\nError:- {e}"
                 )
             LOGGER.error(str(e))
+            await delete(k)
             return
         title = info["title"]
         now = datetime.now()
@@ -134,34 +137,45 @@ async def add_to_playlist(_, message: Message):
 @Client.on_message(filters.command(["leave", f"leave@{Config.BOT_USERNAME}"]) & admin_filter)
 async def leave_voice_chat(_, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not joined any voicechat.")
+        k=await m.reply("Not joined any voicechat.")
+        await delete(k)
+        return
     await leave_call()
-    await m.reply("Succesfully left videochat.")
+    k=await m.reply("Succesfully left videochat.")
+    await delete(k)
 
 
 
 @Client.on_message(filters.command(["shuffle", f"shuffle@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def shuffle_play_list(client, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not joined any voicechat.")
+        k=await m.reply("Not joined any voicechat.")
+        await delete(k)
+        return
     else:
         if len(Config.playlist) > 2:
-            await m.reply_text(f"Playlist Shuffled.")
+            k=await m.reply_text(f"Playlist Shuffled.")
             await shuffle_playlist()
-            
+            await delete(k)
         else:
-            await m.reply_text(f"You cant shuffle playlist with less than 3 songs.")
+            k=await m.reply_text(f"You cant shuffle playlist with less than 3 songs.")
+            await delete(k)
 
 
 @Client.on_message(filters.command(["clearplaylist", f"clearplaylist@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def clear_play_list(client, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not joined any voicechat.")
+        k=await m.reply("Not joined any voicechat.")
+        await delete(k)
+        return
     if not Config.playlist:
-        return await m.reply("Playlist is empty. May be Live streaming.")  
+        k=await m.reply("Playlist is empty. May be Live streaming.")
+        await delete(k)
+        return
     Config.playlist.clear()   
-    await m.reply_text(f"Playlist Cleared.")
+    k=await m.reply_text(f"Playlist Cleared.")
     await start_stream()
+    await delete(k)
 
 
 @Client.on_message(filters.command(["yplay", f"yplay@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
@@ -186,7 +200,8 @@ async def yt_play_list(client, m: Message):
         else:
             await status.delete()
     else:
-        await m.reply("No playList file given. Use @GetPlayListBot  or search for a playlist in @DumpPlaylist to get a playlist file.")
+        k=await m.reply("No playList file given. Use @GetPlayListBot  or search for a playlist in @DumpPlaylist to get a playlist file.")
+        await delete(k)
 
 
 @Client.on_message(filters.command(["stream", f"stream@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
@@ -197,20 +212,24 @@ async def stream(client, m: Message):
         text = m.text.split(" ", 1)
         link = text[1]
     else:
-        return await m.reply("Provide a link to stream!")
+        k=await m.reply("Provide a link to stream!")
+        await delete(k)
     regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
     match = re.match(regex,link)
     if match:
         stream_link=await get_link(link)
         if not stream_link:
-            return await m.reply("This is an invalid link.")
+            k=await m.reply("This is an invalid link.")
+            await delete(k)
+            return
     else:
         stream_link=link
     k, msg=await stream_from_link(stream_link)
     if k == False:
         await m.reply(msg)
         return
-    await m.reply(f"[Streaming]({stream_link}) Started.", disable_web_page_preview=True)
+    s=await m.reply(f"[Streaming]({stream_link}) Started.", disable_web_page_preview=True)
+    await delete(s)
     
 
 
@@ -218,7 +237,8 @@ admincmds=["yplay", "leave", "pause", "resume", "skip", "restart", "volume", "sh
 
 @Client.on_message(filters.command(admincmds) & ~admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def notforu(_, m: Message):
-    await _.send_cached_media(chat_id=m.chat.id, file_id="CAADBQADEgQAAtMJyFVJOe6-VqYVzAI", caption="You Are Not Authorized", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⚡️Join Here', url='https://t.me/subin_works')]]))
+    k=await _.send_cached_media(chat_id=m.chat.id, file_id="CAADBQADEgQAAtMJyFVJOe6-VqYVzAI", caption="You Are Not Authorized", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⚡️Join Here', url='https://t.me/subin_works')]]))
+    await delete(k)
 allcmd = ["play", "player", f"play@{Config.BOT_USERNAME}", f"player@{Config.BOT_USERNAME}"] + admincmds
 
 @Client.on_message(filters.command(allcmd) & ~filters.chat(Config.CHAT) & filters.group)
@@ -229,5 +249,6 @@ async def not_chat(_, m: Message):
             InlineKeyboardButton('🧩 Join Here', url='https://t.me/subin_works'),
         ]
         ]
-    await m.reply("<b>You can't use this bot in this group, for that you have to make your own bot from the [SOURCE CODE](https://github.com/subinps/VCPlayerBot) below.</b>", disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(buttons))
+    k=await m.reply("<b>You can't use this bot in this group, for that you have to make your own bot from the [SOURCE CODE](https://github.com/subinps/VCPlayerBot) below.</b>", disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(buttons))
+    await delete(k)
 

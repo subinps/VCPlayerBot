@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import get_playlist_str, is_admin, mute, restart_playout, skip, pause, resume, unmute, volume, get_buttons, is_admin, seek_file, get_player_string
+from utils import delete, get_playlist_str, is_admin, mute, restart_playout, skip, pause, resume, unmute, volume, get_buttons, is_admin, seek_file, get_player_string
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from config import Config
@@ -40,7 +40,8 @@ async def player(client, message):
 @Client.on_message(filters.command(["skip", f"skip@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def skip_track(_, m: Message):
     if not Config.playlist:
-        await m.reply("Playlist is Empty.\nLive Streaming.")
+        k=await m.reply("Playlist is Empty.\nLive Streaming.")
+        await delete(k)
         return
     if len(m.command) == 1:
         await skip()
@@ -52,11 +53,14 @@ async def skip_track(_, m: Message):
             for i in items:
                 if 2 <= i <= (len(Config.playlist) - 1):
                     Config.playlist.pop(i)
-                    await m.reply(f"Succesfully Removed from Playlist- {i}. **{Config.playlist[i][1]}**")
+                    k=await m.reply(f"Succesfully Removed from Playlist- {i}. **{Config.playlist[i][1]}**")
+                    await delete(k)
                 else:
-                    await m.reply(f"You Cant Skip First Two Songs- {i}")
+                    k=await m.reply(f"You Cant Skip First Two Songs- {i}")
+                    await delete(k)
         except (ValueError, TypeError):
-            await m.reply_text("Invalid input")
+            k=await m.reply_text("Invalid input")
+            await delete(k)
     pl=await get_playlist_str()
     if m.chat.type == "private":
         await m.reply_text(pl, disable_web_page_preview=True, reply_markup=await get_buttons())
@@ -66,66 +70,92 @@ async def skip_track(_, m: Message):
 @Client.on_message(filters.command(["pause", f"pause@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def pause_playing(_, m: Message):
     if Config.PAUSE:
-        return await m.reply("Already Paused")
+        k=await m.reply("Already Paused")
+        await delete(k)
+        return
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
-    await m.reply("Paused Video Call")
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
+        return
+    k=await m.reply("Paused Video Call")
     await pause()
+    await delete(k)
     
 
 @Client.on_message(filters.command(["resume", f"resume@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def resume_playing(_, m: Message):
     if not Config.PAUSE:
-        return await m.reply("Nothing paused to resume")
+        k=await m.reply("Nothing paused to resume")
+        await delete(k)
+        return
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
-    await m.reply("Resumed Video Call")
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
+        return
+    k=await m.reply("Resumed Video Call")
     await resume()
-    
+    await delete(k)
 
 
 @Client.on_message(filters.command(['volume', f"volume@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def set_vol(_, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
-    if len(m.command) < 2:
-        await m.reply_text('You forgot to pass volume (1-200).')
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
         return
-    await m.reply_text(f"Volume set to {m.command[1]}")
+    if len(m.command) < 2:
+        k=await m.reply_text('You forgot to pass volume (1-200).')
+        await delete(k)
+        return
+    k=await m.reply_text(f"Volume set to {m.command[1]}")
     await volume(int(m.command[1]))
+    await delete(k)
 
 
 @Client.on_message(filters.command(['mute', f"mute@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def set_mute(_, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
+        return
     if Config.MUTED:
-        return await m.reply_text("Already muted.")
+        k=await m.reply_text("Already muted.")
+        await delete(k)
+        return
     k=await mute()
     if k:
-        await m.reply_text(f" 🔇 Succesfully Muted ")
+        s=await m.reply_text(f" 🔇 Succesfully Muted ")
     else:
-        await m.reply_text("Already muted.")
+        s=await m.reply_text("Already muted.")
+    await delete(s)
     
 @Client.on_message(filters.command(['unmute', f"unmute@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def set_unmute(_, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
+        return
     if not Config.MUTED:
-        return await m.reply("Stream already unmuted.")
+        k=await m.reply("Stream already unmuted.")
+        await delete(k)
+        return
     k=await unmute()
     if k:
-        await m.reply_text(f"🔊 Succesfully Unmuted ")
+        s=await m.reply_text(f"🔊 Succesfully Unmuted ")
     else:
-        await m.reply_text("Not muted, already unmuted.")    
+        s=await m.reply_text("Not muted, already unmuted.")
+    await delete(s)
 
 
 @Client.on_message(filters.command(["replay", f"replay@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def replay_playout(client, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
-    await m.reply_text(f"Replaying from begining")
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
+        return
+    k=await m.reply_text(f"Replaying from begining")
     await restart_playout()
+    await delete(k)
 
 
 @Client.on_message(filters.command(["player", f"player@{Config.BOT_USERNAME}"]) & (filters.chat(Config.CHAT) | filters.private))
@@ -160,22 +190,30 @@ async def show_player(client, m: Message):
 @Client.on_message(filters.command(["seek", f"seek@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def seek_playout(client, m: Message):
     if not Config.CALL_STATUS:
-        return await m.reply("Not Playing anything.")
+        k=await m.reply("Not Playing anything.")
+        await delete(k)
+        return
     if not (Config.playlist or Config.STREAM_LINK):
-        return await m.reply("Startup stream cant be seeked.")
+        k=await m.reply("Startup stream cant be seeked.")
+        await delete(k)
+        return
     data=Config.DATA.get('FILE_DATA')
     if not data.get('dur', 0) or \
         data.get('dur') == 0:
-        return await m.reply("This stream cant be seeked..")
+        k=await m.reply("This stream cant be seeked..")
+        await delete(k)
+        return
     if ' ' in m.text:
         i, time = m.text.split(" ")
         try:
             time=int(time)
         except:
-            return await m.reply('Invalid time specified')
+            k=await m.reply('Invalid time specified')
         k, string=await seek_file(time)
         if k == False:
-            return await m.reply(string)
+            s=await m.reply(string)
+            await delete(s)
+            return
         if not data.get('dur', 0) or \
             data.get('dur') == 0:
             title="<b>Playing Live Stream</b>"
@@ -186,6 +224,8 @@ async def seek_playout(client, m: Message):
                 title=f"<b>Stream Using [Url]({data['file']}</b>)"
             else:
                 title=f"<b>Streaming Startup [stream]({Config.STREAM_URL})</b>"
-        await m.reply(f"🎸{title}", reply_markup=await get_buttons(), disable_web_page_preview=True)
+        k=await m.reply(f"🎸{title}", reply_markup=await get_buttons(), disable_web_page_preview=True)
+        await delete(k)
     else:
-        await m.reply('No time specified')
+        k=await m.reply('No time specified')
+        await delete(k)

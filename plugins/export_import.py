@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import get_buttons, is_admin, get_playlist_str, shuffle_playlist, import_play_list
+from utils import delete, get_buttons, is_admin, get_playlist_str, shuffle_playlist, import_play_list
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from config import Config
@@ -27,7 +27,8 @@ admin_filter=filters.create(is_admin)
 @Client.on_message(filters.command(["export", f"export@{Config.BOT_USERNAME}"]) & admin_filter & (filters.chat(Config.CHAT) | filters.private))
 async def export_play_list(client, message: Message):
     if not Config.playlist:
-        await message.reply_text("Playlist is Empty")
+        k=await message.reply_text("Playlist is Empty")
+        await delete(k)
         return
     file=f"{message.chat.id}_{message.message_id}.json"
     with open(file, 'w+') as outfile:
@@ -43,12 +44,14 @@ async def import_playlist(client, m: Message):
     if m.reply_to_message is not None and m.reply_to_message.document:
         if m.reply_to_message.document.file_name != "PlayList.json":
             k=await m.reply("Invalid PlayList file given. Use @GetPlayListBot to get a playlist file. Or Export your current Playlist using /export.")
+            await delete(k)
             return
         myplaylist=await m.reply_to_message.download()
         status=await m.reply("Trying to get details from playlist.")
         n=await import_play_list(myplaylist)
         if not n:
-            await status.edit("Errors Occured while importing playlist.")
+            k=await status.edit("Errors Occured while importing playlist.")
+            await delete(k)
             return
         if Config.SHUFFLE:
             await shuffle_playlist()
@@ -60,4 +63,5 @@ async def import_playlist(client, m: Message):
         else:
             await status.delete()
     else:
-        await m.reply("No playList file given. Use @GetPlayListBot  or search for a playlist in @DumpPlaylist to get a playlist file.")
+        k=await m.reply("No playList file given. Use @GetPlayListBot  or search for a playlist in @DumpPlaylist to get a playlist file.")
+        await delete(k)
