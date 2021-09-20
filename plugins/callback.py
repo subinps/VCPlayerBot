@@ -74,7 +74,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
         elif Config.STREAM_LINK:
             title=f"<b>Stream Using [Url]({Config.DATA['FILE_DATA']['file']})</b>"
         else:
-            title=f"<b>Streaming Startup [stream]({Config.STREAM_URL})</b>"
+            title=f"<b>Streaming Startup [Stream]({Config.STREAM_URL})</b>"
 
         try:
             await query.message.edit(f"<b>{title}</b>",

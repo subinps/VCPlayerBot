@@ -179,7 +179,7 @@ async def show_player(client, m: Message):
         )
     else:
         if Config.msg.get('player') is not None:
-            await Config.msg['playlist'].delete()
+            await Config.msg['player'].delete()
         Config.msg['player'] = await m.reply_text(
             title,
             disable_web_page_preview=True,
@@ -223,7 +223,7 @@ async def seek_playout(client, m: Message):
             elif Config.STREAM_LINK:
                 title=f"<b>Stream Using [Url]({data['file']}</b>)"
             else:
-                title=f"<b>Streaming Startup [stream]({Config.STREAM_URL})</b>"
+                title=f"<b>Streaming Startup [Stream]({Config.STREAM_URL})</b>"
         k=await m.reply(f"🎸{title}", reply_markup=await get_buttons(), disable_web_page_preview=True)
         await delete(k)
     else:
