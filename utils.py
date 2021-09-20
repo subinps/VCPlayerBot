@@ -795,7 +795,14 @@ async def update():
             target=stop_and_restart()
             ).start()
 
-
+async def delete(message):
+    if message.chat.type == "supergroup":
+        await sleep(10)
+        try:
+            await message.delete()
+            await message.reply_to_message.delete()
+        except:
+            pass
 
 
 @group_call.on_raw_update()
