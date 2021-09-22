@@ -149,7 +149,7 @@ async def show_player(client, m: Message):
         )
     else:
         if Config.msg.get('player') is not None:
-            await Config.msg['playlist'].delete()
+            await Config.msg['player'].delete()
         Config.msg['player'] = await m.reply_text(
             title,
             disable_web_page_preview=True,
