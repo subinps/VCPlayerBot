@@ -1,7 +1,9 @@
 git+https://github.com/pyrogram/pyrogram@master
-py-tgcalls
+py-tgcalls==0.8.0
 tgcrypto
 ffmpeg-python
+wrapt_timeout_decorator
 youtube_dl
 youtube_search_python
 youtube_search
+heroku3

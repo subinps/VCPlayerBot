@@ -6,7 +6,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/subinps/VCPlayerBot?style=flat)
 ![GitHub forks](https://img.shields.io/github/forks/subinps/VCPlayerBot?style=flat)
 
-Telegram bot to stream videos in telegram voicechat for both groups and channels. Supports live strams, YouTube videos and telegram media.
+Telegram bot to stream videos in telegram voicechat for both groups and channels. Supports live streams, YouTube videos and telegram media.
 
 ## Config Vars:
 ### Mandatory Vars
@@ -21,6 +21,8 @@ Telegram bot to stream videos in telegram voicechat for both groups and channels
 3. `STARTUP_STREAM` : This will be streamed on startups and restarts of bot. You can use either any STREAM_URL or a direct link of any video or a Youtube Live link. You can also use YouTube Playlist.Find a Telegram Link for your playlist from [PlayList Dumb](https://telegram.dog/DumpPlaylist) or get a PlayList from [PlayList Extract](https://telegram.dog/GetAPlaylistbot). The PlayList link should in form `https://t.me/DumpPlaylist/xxx`.
 4. `REPLY_MESSAGE` : A reply to those who message the USER account in PM. Leave it blank if you do not need this feature. 
 5. `ADMIN_ONLY` : Pass `Y` If you want to make /play command only for admins of `CHAT`. By default /play is available for all.
+6. `HEROKU_API_KEY`: Your heroku api key. Get one from [here](https://dashboard.heroku.com/account/applications/authorizations/new)
+7. `HEROKU_APP_NAME`: Your heroku apps name.
 
 
 
@@ -34,6 +36,10 @@ Telegram bot to stream videos in telegram voicechat for both groups and channels
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/subinps/VCPlayerBot)
 
+## Deploy to Railway
+<p><a href=https://github.com/subinps/VCPlayerBot/issues/7> <img src="https://img.shields.io/badge/Deploy%20To%20Railway-blueviolet?style=for-the-badge&logo=railway" width="200""/></a></p>
+
+ 
 ## Deploy to VPS
 
 ```sh

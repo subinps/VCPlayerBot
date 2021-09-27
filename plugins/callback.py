@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from utils import get_admins, get_buttons, get_playlist_str, pause, restart_playout, resume, shuffle_playlist, skip
+from utils import get_admins, get_buttons, get_playlist_str, mute, pause, restart_playout, resume, seek_file, shuffle_playlist, skip, unmute
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import MessageNotModified
 from pyrogram import Client
@@ -35,15 +35,9 @@ async def cb_handler(client: Client, query: CallbackQuery):
             await query.answer("Playlist is empty.", show_alert=True)
             return
         await shuffle_playlist()
-        await sleep(1)
-        pl=await get_playlist_str()
-        
+        await sleep(1)        
         try:
-            await query.message.edit(
-                    f"{pl}",
-                    parse_mode="Markdown",
-                    reply_markup=await get_buttons()
-            )
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
         except MessageNotModified:
             pass
 
@@ -53,12 +47,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
         else:
             await pause()
             await sleep(1)
-        pl=await get_playlist_str()
         try:
-            await query.message.edit(f"{pl}",
-                disable_web_page_preview=True,
-                reply_markup=await get_buttons()
-            )
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
         except MessageNotModified:
             pass
     
@@ -68,12 +58,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
         else:
             await resume()
             await sleep(1)
-        pl=await get_playlist_str()
         try:
-            await query.message.edit(f"{pl}",
-                disable_web_page_preview=True,
-                reply_markup=await get_buttons()
-            )
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
         except MessageNotModified:
             pass
 
@@ -83,9 +69,15 @@ async def cb_handler(client: Client, query: CallbackQuery):
         else:
             await skip()
             await sleep(1)
-        pl=await get_playlist_str()
+        if Config.playlist:
+            title=f"<b>{Config.playlist[0][1]}</b>"
+        elif Config.STREAM_LINK:
+            title=f"<b>Stream Using [Url]({Config.DATA['FILE_DATA']['file']}</b>)"
+        else:
+            title=f"<b>Streaming Startup [stream]({Config.STREAM_URL})</b>"
+
         try:
-            await query.message.edit(f"{pl}",
+            await query.message.edit(f"<b>{title}</b>",
                 disable_web_page_preview=True,
                 reply_markup=await get_buttons()
             )
@@ -97,12 +89,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
         else:
             await restart_playout()
             await sleep(1)
-        pl=await get_playlist_str()
         try:
-            await query.message.edit(f"{pl}",
-                disable_web_page_preview=True,
-                reply_markup=await get_buttons()
-            )
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
         except MessageNotModified:
             pass
 
@@ -114,7 +102,6 @@ async def cb_handler(client: Client, query: CallbackQuery):
             ]
         ]
         reply_markup = InlineKeyboardMarkup(buttons)
-
         try:
             await query.message.edit(
                 Config.HELP,
@@ -123,5 +110,49 @@ async def cb_handler(client: Client, query: CallbackQuery):
             )
         except MessageNotModified:
             pass
+    elif query.data.lower() == "mute":
+        if Config.MUTED:
+            await unmute()
+        else:
+            await mute()
+        await sleep(1)
+        try:
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
+        except MessageNotModified:
+            pass
+    elif query.data.lower() == 'seek':
+        if not Config.CALL_STATUS:
+            return await query.answer("Not Playing anything.", show_alert=True)
+        if not (Config.playlist or Config.STREAM_LINK):
+            return await query.answer("Startup stream cant be seeked.", show_alert=True)
+        data=Config.DATA.get('FILE_DATA')
+        if not data.get('dur', 0) or \
+            data.get('dur') == 0:
+            return await query.answer("This stream cant be seeked..", show_alert=True)
+        k, reply = await seek_file(10)
+        if k == False:
+            return await query.answer(reply, show_alert=True)
+        try:
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
+        except MessageNotModified:
+            pass
+    elif query.data.lower() == 'rewind':
+        if not Config.CALL_STATUS:
+            return await query.answer("Not Playing anything.", show_alert=True)
+        if not (Config.playlist or Config.STREAM_LINK):
+            return await query.answer("Startup stream cant be seeked.", show_alert=True)
+        data=Config.DATA.get('FILE_DATA')
+        if not data.get('dur', 0) or \
+            data.get('dur') == 0:
+            return await query.answer("This stream cant be seeked..", show_alert=True)
+        k, reply = await seek_file(-10)
+        if k == False:
+            return await query.answer(reply, show_alert=True)
+        try:
+            await query.message.edit_reply_markup(reply_markup=await get_buttons())
+        except MessageNotModified:
+            pass
+
     await query.answer()
+
 
