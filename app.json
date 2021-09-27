@@ -1,7 +1,7 @@
 {
     "name": "VCPlayerBot",
     "description": "Telegram bot to stream video in telegram VC",
-    "repository": "https://github.com/subinps/VCPlayerBot",
+    "repository": "https://github.com/TharukRenuja/VCPlayerBot",
     "stack": "container",
     "keywords": [
       "telegram",
@@ -50,7 +50,7 @@
       },
       "STARTUP_STREAM": {
         "description": "YouTube live / Direct link to a video / Telegram link to a YouTube playlist.(Read the README for more info.) ",
-        "value": "https://youtu.be/zcrUCvBD16k",
+        "value": "https://www.youtube.com/watch?v=RMrltvVlYAY",
         "required": false
       },
       "REPLY_MESSAGE": {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) @subinps
+# Copyright (C) @TharukRenuja
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -29,7 +29,7 @@ except ModuleNotFoundError:
 
 Y_PLAY=False
 YSTREAM=False
-STREAM=os.environ.get("STARTUP_STREAM", "https://www.youtube.com/watch?v=zcrUCvBD16k")
+STREAM=os.environ.get("STARTUP_STREAM", "https://www.youtube.com/watch?v=RMrltvVlYAY")
 regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
 match = re.match(regex,STREAM)
 if match:
@@ -174,7 +174,7 @@ These are commands to control player.
     <i>Set a new config var or change existing one or delete existing one. Example: /env CHAT=-100120202002 to change(if exist else set as new) CHAT config to -100120202002. If no value is passed, the var will be deleted. Example /env REPLY_MESSAGE= , this will delete the REPLY_MESSAGE var.</i>
 
 <b>How Can I Stream In My Group</b>
-  <i>The source code of this bot is public and can be found at <a href=https://github.com/subinps/VCPlayerBot>VCPlayerBot.</a>\nYou can deploy your own bot and use in your group.</i>
+  <i>The source code of this bot is public and can be found at <a href=https://github.com/TharukRenuja/VCPlayerBot>VCPlayerBot.</a>\nYou can deploy your own bot and use in your group.</i>
 
 """
 
