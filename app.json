@@ -39,13 +39,30 @@
         "description": "ID of the group to send playlist If CHAT is a Group, if channel thenleave blank",
         "required": false
       },
+      "QUALITY": {
+        "description": "Default quality of your video player, Use one of high, medium or low.",
+        "value": "high",
+        "required": false
+      },
+      "DATABASE_URI": {
+        "description": "Mongo DB database URI , get from https://cloud.mongodb.com, even if this is optional, many of functions may not work if this is not set.",
+        "required": false
+      },
       "ADMINS": {
         "description": "ID of Users who can use Admin commands(for multiple users seperated by space)",
         "required": true
       },
       "ADMIN_ONLY": {
-        "description": "Change it to 'N' if you want to make /play and /dplay available for everyone. By default only admins of CHAT can use it.",
-        "value": "Y",
+        "description": "Change it to True if you want to make /play command available for everyone.",
+        "value": "False",
+        "required": false
+      },
+      "HEROKU_API_KEY": {
+        "description": "Your heroku api key, get it from https://dashboard.heroku.com/account/applications/authorizations/new.",
+        "required": false
+      },
+      "HEROKU_APP_NAME": {
+        "description": "Heroku App Name.",
         "required": false
       },
       "STARTUP_STREAM": {
@@ -64,13 +81,5 @@
         "quantity": 1,
         "size": "free"
       }
-    },
-    "buildpacks": [
-      {
-        "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-      },
-      {
-        "url": "heroku/python"
-      }
-    ]
+    }
   }
