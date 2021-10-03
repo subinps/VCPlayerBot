@@ -164,7 +164,7 @@ async def handle_raw_updates(client: Client, update: Update, user: dict, chat: d
                 Config.CURRENT_CALL=a.full_chat.call.id
         if Config.CURRENT_CALL and update.call.id == Config.CURRENT_CALL:
             all=update.participants
-            old=list(filter(lambda k: k.peer.user_id == Config.USER_ID, all))
+            old=list(filter(lambda k:k.peer.user_id if hasattr(k.peer,'user_id') else k.peer.channel_id == Config.USER_ID, all))
             if old:
                 for me in old:
                     if me.volume:

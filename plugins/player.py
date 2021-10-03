@@ -60,8 +60,8 @@ admin_filter=filters.create(is_admin)
 @Client.on_message(filters.command(["play", "fplay", f"play@{Config.BOT_USERNAME}", f"fplay@{Config.BOT_USERNAME}"]) & chat_filter)
 async def add_to_playlist(_, message: Message):
     with suppress(MessageIdInvalid, MessageNotModified):
+        admins = await get_admins(Config.CHAT)
         if Config.ADMIN_ONLY:
-            admins = await get_admins(Config.CHAT)
             if not (message.from_user is None and message.sender_chat or message.from_user.id in admins):
                 k=await message.reply_sticker("CAADBQADsQIAAtILIVYld1n74e3JuQI")
                 await delete_messages([message, k])
