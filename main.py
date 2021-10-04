@@ -40,10 +40,8 @@ async def main():
     await bot.start()
     Config.BOT_USERNAME = (await bot.get_me()).username
     LOGGER.info(f"{Config.BOT_USERNAME} Started.")
-    try:
-        await group_call.start()
-        Config.USER_ID = (await USER.get_me()).id
-        if Config.DATABASE_URI:
+    if Config.DATABASE_URI:
+        try:
             if await db.is_saved("RESTART"):
                 msg=await db.get_config("RESTART")
                 if msg:
@@ -53,12 +51,35 @@ async def main():
                     except:
                         pass
             await sync_from_db()
+        except Exception as e:
+            LOGGER.error(f"Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}")
+            LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
+            await bot.stop()
+            from debug import debug
+            await debug.start()
+            await idle()
+            return
+
+    if Config.DEBUG:
+        LOGGER.info("Debugging enabled by user, Now in debug mode.")
+        from debug import debug
+        await debug.start()
+        await idle()
+        return
+
+    try:
+        await group_call.start()
+        Config.USER_ID = (await USER.get_me()).id
         k=await startup_check()
         if k == False:
             LOGGER.error("Startup checks not passed , bot is quiting")
             await bot.stop()
-            await group_call.stop()
+            LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
+            from debug import debug
+            await debug.start()
+            await idle()
             return
+
         if Config.IS_LOOP:
             if Config.playlist:
                 await play()
@@ -68,7 +89,12 @@ async def main():
                 await start_stream()
     except Exception as e:
         LOGGER.error(f"Startup was unsuccesfull, Errors - {e}")
-        pass
+        LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
+        from debug import debug
+        await debug.start()
+        await idle()
+        return
+
     await idle()
     await bot.stop()
 

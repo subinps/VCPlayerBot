@@ -116,8 +116,11 @@ async def play():
     else:
         file=await get_link(song[2])
     if not file:
-        await skip()
-        return False
+        if Config.playlist or Config.STREAM_LINK:
+            return await skip()     
+        else:
+            LOGGER.error("This stream is not supported , leaving VC.")
+            return False   
     link, seek, pic, width, height = await chek_the_media(file, title=f"{song[1]}")
     if not link:
         LOGGER.warning("Unsupported link, Skiping from queue.")
@@ -352,7 +355,11 @@ async def join_and_play(link, seek, pic, width, height):
                     if not width \
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
-                        return await skip()     
+                        if Config.playlist or Config.STREAM_LINK:
+                            return await skip()     
+                        else:
+                            LOGGER.error("This stream is not supported , leaving VC.")
+                            return 
                     if Config.BITRATE and Config.FPS: 
                         await group_call.join_group_call(
                             int(Config.CHAT),
@@ -407,7 +414,11 @@ async def join_and_play(link, seek, pic, width, height):
                     if not width \
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
-                        return await skip()
+                        if Config.playlist or Config.STREAM_LINK:
+                            return await skip()     
+                        else:
+                            LOGGER.error("This stream is not supported , leaving VC.")
+                            return 
                     if Config.FPS and Config.BITRATE:
                         await group_call.join_group_call(
                             int(Config.CHAT),
@@ -461,7 +472,11 @@ async def join_and_play(link, seek, pic, width, height):
             return True
         else:
             LOGGER.error("Invalid video")
-            await skip()
+            if Config.playlist or Config.STREAM_LINK:
+                return await skip()     
+            else:
+                LOGGER.error("This stream is not supported , leaving VC.")
+                return 
     except Exception as e:
         LOGGER.error(f"Errors Occured while joining, retrying Error- {e}")
         return False
@@ -496,7 +511,11 @@ async def change_file(link, seek, pic, width, height):
                     if not width \
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
-                        return await skip()
+                        if Config.playlist or Config.STREAM_LINK:
+                            return await skip()     
+                        else:
+                            LOGGER.error("This stream is not supported , leaving VC.")
+                            return 
                     if Config.FPS and Config.BITRATE:
                         await group_call.change_stream(
                             int(Config.CHAT),
@@ -547,7 +566,11 @@ async def change_file(link, seek, pic, width, height):
                     if not width \
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
-                        return await skip()
+                        if Config.playlist or Config.STREAM_LINK:
+                            return await skip()     
+                        else:
+                            LOGGER.error("This stream is not supported , leaving VC.")
+                            return 
                     if Config.FPS and Config.BITRATE:
                         await group_call.change_stream(
                             int(Config.CHAT),
@@ -582,8 +605,11 @@ async def change_file(link, seek, pic, width, height):
             return True
         else:
             LOGGER.error("Invalid video, skipped")
-            await skip()
-            return True
+            if Config.playlist or Config.STREAM_LINK:
+                return await skip()     
+            else:
+                LOGGER.error("This stream is not supported , leaving VC.")
+                return 
     except Exception as e:
         LOGGER.error(f"Error in joining call - {e}")
         return False
@@ -724,6 +750,10 @@ async def start_stream():
     if not link:
         LOGGER.warning("Unsupported link")
         return False
+    if Config.IS_VIDEO:
+        if not ((width and height) or pic):
+            LOGGER.error("Stream Link is invalid")
+            return 
     #if Config.playlist:
         #Config.playlist.clear()
     await join_call(link, seek, pic, width, height)
@@ -749,8 +779,11 @@ async def get_link(file):
             ydl_info = ydl.extract_info(file, download=False)
         except Exception as e:
             LOGGER.error(f"Errors occured while getting link from youtube video {e}")
-            await skip()
-            return False
+            if Config.playlist or Config.STREAM_LINK:
+                return await skip()     
+            else:
+                LOGGER.error("This stream is not supported , leaving VC.")
+                return False
         url=None
         for each in ydl_info['formats']:
             if each['width'] == 640 \
@@ -770,8 +803,11 @@ async def get_link(file):
             return url
         else:
             LOGGER.error(f"Errors occured while getting link from youtube video - No Video Formats Found")
-            await skip()
-            return False
+            if Config.playlist or Config.STREAM_LINK:
+                return await skip()     
+            else:
+                LOGGER.error("This stream is not supported , leaving VC.")
+                return False
 
 
 
@@ -803,8 +839,12 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
             LOGGER.error("Unable to get Audio properties within time.")
         if not is_audio_:
             Config.STREAM_LINK=False
-            await skip()
-            return None, None, None, None, None
+            if Config.playlist or Config.STREAM_LINK:
+                return await skip()     
+            else:
+                LOGGER.error("This stream is not supported , leaving VC.")
+                return None, None, None, None, None
+            
     else:
         try:
             width, height = get_height_and_width(link)
@@ -831,8 +871,11 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
                 pic = get_image(title, photo, dur_) 
             else:
                 Config.STREAM_LINK=False
-                await skip()
-                return None, None, None, None, None
+                if Config.playlist or Config.STREAM_LINK:
+                    return await skip()     
+                else:
+                    LOGGER.error("This stream is not supported , leaving VC.")
+                    return None, None, None, None, None
     try:
         dur=get_duration(link)
     except:
@@ -1413,7 +1456,7 @@ async def recorder_settings():
             InlineKeyboardButton(f"{Config.RECORDING_TITLE if Config.RECORDING_TITLE else 'Default'}", callback_data='info_rectitle'),
         ],
         [
-            InlineKeyboardButton(f"Recording Dumb Channel", callback_data='info_recdumb'),
+            InlineKeyboardButton(f"Recording Dump Channel", callback_data='info_recdumb'),
             InlineKeyboardButton(f"{Config.RECORDING_DUMP if Config.RECORDING_DUMP else 'Not Dumping'}", callback_data='info_recdumb'),
         ],
         [

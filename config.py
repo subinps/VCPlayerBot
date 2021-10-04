@@ -77,6 +77,7 @@ class Config:
     DELAY=int(os.environ.get("DELAY", '10'))
     PORTRAIT=is_enabled(os.environ.get("PORTRAIT", 'False'))
     IS_VIDEO_RECORD=is_enabled(os.environ.get("IS_VIDEO_RECORD", 'True'))
+    DEBUG=is_enabled(os.environ.get("DEBUG", 'False'))
 
     #Quality vars
     BITRATE=os.environ.get("BITRATE", False)
