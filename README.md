@@ -65,7 +65,7 @@ Telegram bot to stream videos in telegram voicechat for both groups and channels
 git clone https://github.com/subinps/VCPlayerBot
 cd VCPlayerBot
 pip3 install -r requirements.txt
-# <Create Variables appropriately>
+# <Create Variables appropriately (.env [optional])>
 python3 main.py
 ```
 

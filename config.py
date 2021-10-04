@@ -17,6 +17,7 @@ from logger import LOGGER
 try:
    import os
    import heroku3
+   from dotenv import load_dotenv
    from ast import literal_eval as is_enabled
    from pytgcalls.types.input_stream.quality import (
         HighQualityVideo,
@@ -38,6 +39,7 @@ except ModuleNotFoundError:
 
 class Config:
     #Telegram API Stuffs
+    load_dotenv()  # load enviroment variables from .env file
     ADMIN = os.environ.get("ADMINS", '')
     SUDO = [int(admin) for admin in (ADMIN).split()] # Exclusive for heroku vars configuration.
     ADMINS = [int(admin) for admin in (ADMIN).split()] #group admins will be appended to this list.
