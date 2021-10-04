@@ -111,7 +111,7 @@ async def play():
             LOGGER.info("Downloading the file from TG")
         while not os.path.exists(file):
             await sleep(1)
-    elif song[3] == "direct":
+    elif song[3] == "url":
         file=song[2]
     else:
         file=await get_link(song[2])
@@ -166,7 +166,7 @@ async def run_schedule(job_id):
     else:
         if Config.HAS_SCHEDULE:
             if not await start_scheduled():
-                LOGGER.error("Scheduled stream skiped, Reason - Unable to start a voice chat.")
+                LOGGER.error("Scheduled stream skipped, Reason - Unable to start a voice chat.")
                 return
         data_ = [{1:data['1'], 2:data['2'], 3:data['3'], 4:data['4'], 5:data['5']}]
         Config.playlist = data_ + Config.playlist
