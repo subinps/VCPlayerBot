@@ -12,3 +12,4 @@ motor
 dnspython
 pytz
 apscheduler
+python-dotenv
