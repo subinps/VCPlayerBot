@@ -63,6 +63,7 @@ async def main():
     if Config.DEBUG:
         LOGGER.info("Debugging enabled by user, Now in debug mode.")
         from debug import debug
+        await bot.stop()
         await debug.start()
         await idle()
         return
@@ -91,6 +92,7 @@ async def main():
         LOGGER.error(f"Startup was unsuccesfull, Errors - {e}")
         LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
         from debug import debug
+        await bot.stop()
         await debug.start()
         await idle()
         return
