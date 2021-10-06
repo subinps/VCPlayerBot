@@ -887,10 +887,12 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
 
 
 async def edit_title():
-    if not Config.playlist:
-        title = "Live Stream"
+    if Config.STREAM_LINK:
+        title="Live Stream"
+    elif Config.playlist:
+        title = Config.playlist[0][1]   
     else:       
-        title = Config.playlist[0][1]
+        title = "Live Stream"
     try:
         chat = await USER.resolve_peer(Config.CHAT)
         full_chat=await USER.send(
