@@ -182,7 +182,7 @@ async def get_logs(client, message):
 
 @debug.on_message(filters.text & filters.private)
 async def reply_else(bot, message):
-    await message.reply(f"**Development mode is activated.\nThis occures when there are some errors in startup of the bot.\nOnly Configuration commands works in development mode.\nAvailabe commands are /env, /skip, /clearplaylist and /restart and /logs**\n\nThe cause for activation of development mode was {str(Config.STARTUP_ERROR)}")
+    await message.reply(f"Development mode is activated.\nThis occures when there are some errors in startup of the bot.\nOnly Configuration commands works in development mode.\nAvailabe commands are /env, /skip, /clearplaylist and /restart and /logs\n\n**The cause for activation of development mode was**\n\n`{str(Config.STARTUP_ERROR)}`")
 
 def stop_and_restart():
     os.system("git pull")

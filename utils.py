@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid
 from logger import LOGGER
 try:
     from pyrogram.raw.types import InputChannel
@@ -43,7 +42,9 @@ try:
     import math
     from pyrogram.errors.exceptions.bad_request_400 import (
         BadRequest, 
-        ScheduleDateInvalid
+        ScheduleDateInvalid,
+        PeerIdInvalid,
+        ChannelInvalid
     )
     from pytgcalls.types.input_stream import (
         AudioVideoPiped, 
@@ -1524,8 +1525,6 @@ async def sync_to_db():
         await db.edit_config("RECORDING_TITLE", Config.RECORDING_TITLE)
         await db.edit_config("HAS_SCHEDULE", Config.HAS_SCHEDULE)
 
-        
-
 
 async def sync_from_db():
     if Config.DATABASE_URI:  
@@ -1818,14 +1817,14 @@ async def startup_check():
     if Config.LOG_GROUP:
         try:
             k=await bot.get_chat_member(Config.LOG_GROUP, Config.BOT_USERNAME)
-        except (ValueError, PeerIdInvalid):
+        except (ValueError, PeerIdInvalid, ChannelInvalid):
             LOGGER.error(f"LOG_GROUP var Found and @{Config.BOT_USERNAME} is not a member of the group.")
             Config.STARTUP_ERROR=f"LOG_GROUP var Found and @{Config.BOT_USERNAME} is not a member of the group."
             return False
     if Config.RECORDING_DUMP:
         try:
             k=await USER.get_chat_member(Config.RECORDING_DUMP, Config.USER_ID)
-        except (ValueError, PeerIdInvalid):
+        except (ValueError, PeerIdInvalid, ChannelInvalid):
             LOGGER.error(f"RECORDING_DUMP var Found and @{Config.USER_ID} is not a member of the group./ Channel")
             Config.STARTUP_ERROR=f"RECORDING_DUMP var Found and @{Config.USER_ID} is not a member of the group./ Channel"
             return False
@@ -1840,7 +1839,7 @@ async def startup_check():
                 LOGGER.warning(f"{Config.USER_ID} is not an admin in {Config.CHAT}, it is recommended to run the user as admin.")
             elif k.status in ["administrator", "creator"] and not k.can_manage_voice_chats:
                 LOGGER.warning(f"{Config.USER_ID} is not having right to manage voicechat, it is recommended to promote with this right.")
-        except (ValueError, PeerIdInvalid):
+        except (ValueError, PeerIdInvalid, ChannelInvalid):
             Config.STARTUP_ERROR=f"The user account by which you generated the SESSION_STRING is not found on CHAT ({Config.CHAT})"
             LOGGER.error(f"The user account by which you generated the SESSION_STRING is not found on CHAT ({Config.CHAT})")
             return False
@@ -1848,7 +1847,7 @@ async def startup_check():
             k=await bot.get_chat_member(Config.CHAT, Config.BOT_USERNAME)
             if not k.status == "administrator":
                 LOGGER.warning(f"{Config.BOT_USERNAME}, is not an admin in {Config.CHAT}, it is recommended to run the bot as admin.")
-        except (ValueError, PeerIdInvalid):
+        except (ValueError, PeerIdInvalid, ChannelInvalid):
             Config.STARTUP_ERROR=f"Bot Was Not Found on CHAT, it is recommended to add {Config.BOT_USERNAME} to {Config.CHAT}"
             LOGGER.warning(f"Bot Was Not Found on CHAT, it is recommended to add {Config.BOT_USERNAME} to {Config.CHAT}")
             pass
