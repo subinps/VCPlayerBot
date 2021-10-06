@@ -99,6 +99,8 @@ class Config:
     SCHEDULE_LIST=[]
     playlist=[]
 
+    STARTUP_ERROR=None
+
     ADMIN_CACHE=False
     CALL_STATUS=False
     YPLAY=False

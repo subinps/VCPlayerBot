@@ -53,6 +53,7 @@ async def main():
             await sync_from_db()
         except Exception as e:
             LOGGER.error(f"Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}")
+            Config.STARTUP_ERROR="Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}"
             LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
             await bot.stop()
             from debug import debug
@@ -62,6 +63,7 @@ async def main():
 
     if Config.DEBUG:
         LOGGER.info("Debugging enabled by user, Now in debug mode.")
+        Config.STARTUP_ERROR="Debugging enabled by user, Now in debug mode."
         from debug import debug
         await bot.stop()
         await debug.start()
@@ -91,6 +93,7 @@ async def main():
     except Exception as e:
         LOGGER.error(f"Startup was unsuccesfull, Errors - {e}")
         LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
+        Config.STARTUP_ERROR=f"Startup was unsuccesfull, Errors - {e}"
         from debug import debug
         await bot.stop()
         await debug.start()
