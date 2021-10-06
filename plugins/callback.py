@@ -494,7 +494,13 @@ async def cb_handler(client: Client, query: CallbackQuery):
             elif query.data == "is_video":
                 Config.IS_VIDEO = set_config(Config.IS_VIDEO)
                 await query.message.edit_reply_markup(reply_markup=await settings_panel())
-                await restart_playout()
+                data=Config.DATA.get('FILE_DATA')
+                if not data.get('dur', 0) or \
+                    data.get('dur') == 0:
+                    await restart_playout()
+                k, reply = await seek_file(0)
+                if k == False:
+                    await restart_playout()
 
             elif query.data == "admin_only":
                 Config.ADMIN_ONLY = set_config(Config.ADMIN_ONLY)
