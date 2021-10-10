@@ -41,12 +41,14 @@ from utils import (
     is_admin, 
     chat_filter,
     sudo_filter,
-    delete_messages
+    delete_messages,
+    seek_file
 )
 from pyrogram import (
     Client, 
     filters
 )
+
 IST = pytz.timezone(Config.TIME_ZONE)
 if Config.DATABASE_URI:
     from utils import db
@@ -249,7 +251,7 @@ async def set_heroku_var(client, message):
             await delete_messages([message, m])
             return
 
-        if Config.DATABASE_URI and var in ["STARTUP_STREAM", "CHAT", "LOG_GROUP", "REPLY_MESSAGE", "DELAY", "RECORDING_DUMP"]:      
+        if Config.DATABASE_URI and var in ["STARTUP_STREAM", "CHAT", "LOG_GROUP", "REPLY_MESSAGE", "DELAY", "RECORDING_DUMP", "QUALITY"]:      
             await m.edit("Mongo DB Found, Setting up config vars...")
             await asyncio.sleep(2)  
             if not value:
@@ -264,13 +266,27 @@ async def set_heroku_var(client, message):
                 await delete_messages([message, m])           
                 return
             else:
-                if var in ["CHAT", "LOG_GROUP", "RECORDING_DUMP"]:
+                if var in ["CHAT", "LOG_GROUP", "RECORDING_DUMP", "QUALITY"]:
                     try:
                         value=int(value)
                     except:
-                        await m.edit("You should give me a chat id . It should be an interger.")
-                        await delete_messages([message, m])
-                        return
+                        if var == "QUALITY":
+                            if not value.lower() in ["low", "medium", "high"]:
+                                await m.edit("You should specify a value between 10 - 100.")
+                                await delete_messages([message, m])
+                                return
+                            else:
+                                value = value.lower()
+                                if value == "high":
+                                    value = 100
+                                elif value == "medium":
+                                    value = 66.9
+                                elif value == "low":
+                                    value = 50
+                        else:
+                            await m.edit("You should give me a chat id . It should be an interger.")
+                            await delete_messages([message, m])
+                            return
                     if var == "CHAT":
                         await leave_call()
                         Config.ADMIN_CACHE=False
@@ -280,6 +296,16 @@ async def set_heroku_var(client, message):
                         Config.CHAT=int(value)
                         await restart()
                     await edit_config(var, int(value))
+                    if var == "QUALITY":
+                        if Config.CALL_STATUS:
+                            data=Config.DATA.get('FILE_DATA')
+                            if not data \
+                                or data.get('dur', 0) == 0:
+                                await restart_playout()
+                                return
+                            k, reply = await seek_file(0)
+                            if k == False:
+                                await restart_playout()
                     await m.edit(f"Succesfully changed {var} to {value}")
                     await delete_messages([message, m])
                     return
