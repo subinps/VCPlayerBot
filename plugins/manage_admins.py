@@ -12,7 +12,7 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from logger import LOGGER
+from utils import LOGGER
 from config import Config
 from pyrogram import (
     Client, 
@@ -44,6 +44,7 @@ async def add_admin(client, message):
                 user=await client.get_users(user)
             except Exception as e:
                 k=await message.reply(f"I was unable to locate that user.\nError: {e}")
+                LOGGER.error(f"Unable to find the user - {e}", exc_info=True)
                 await delete_messages([message, k])
                 return
             user_id=user.id
@@ -86,6 +87,7 @@ async def remove_admin(client, message):
                 user=await client.get_users(user)
             except Exception as e:
                 k = await message.reply(f"I was unable to locate that user.\nError: {e}")
+                LOGGER.error(f"Unable to Locate user, {e}", exc_info=True)
                 await delete_messages([message, k])
                 return
             user_id=user.id

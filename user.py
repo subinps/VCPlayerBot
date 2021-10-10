@@ -15,7 +15,7 @@
 from pytgcalls import PyTgCalls
 from pyrogram import Client
 from config import Config
-from logger import LOGGER
+from utils import LOGGER
 
 USER = Client(
     Config.SESSION,

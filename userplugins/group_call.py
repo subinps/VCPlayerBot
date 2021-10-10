@@ -12,7 +12,7 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from logger import LOGGER
+from utils import LOGGER
 from pyrogram.errors import BotInlineDisabled
 from pyrogram import Client, filters
 from config import Config
@@ -85,7 +85,7 @@ async def reply(client, message):
         LOGGER.error(f"Error: Inline Mode for @{Config.BOT_USERNAME} is not enabled. Enable from @Botfather to enable PM Permit.")
         await message.reply(f"{Config.REPLY_MESSAGE}\n\n<b>You can't use this bot in your group, for that you have to make your own bot from the [SOURCE CODE](https://github.com/subinps/VCPlayerBot) below.</b>", disable_web_page_preview=True)
     except Exception as e:
-        LOGGER.error(e)
+        LOGGER.error(e, exc_info=True)
         pass
 
 
@@ -215,6 +215,12 @@ async def handler(client: PyTgCalls, update: Update):
         Config.CALL_STATUS = True
         if Config.EDIT_TITLE:
             await edit_title()
+        who=await group_call.get_participants(Config.CHAT)
+        you=list(filter(lambda k:k.user_id == Config.USER_ID, who))
+        if you:
+            for me in you:
+                if me.volume:
+                    Config.VOLUME=round(int(me.volume))
     elif isinstance(update, LeftVoiceChat):
         Config.CALL_STATUS = False
     elif isinstance(update, PausedStream):

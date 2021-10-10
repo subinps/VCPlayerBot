@@ -16,7 +16,7 @@
 from pyrogram.handlers import InlineQueryHandler
 from youtubesearchpython import VideosSearch
 from config import Config
-from logger import LOGGER
+from utils import LOGGER
 from pyrogram.types import (
     InlineQueryResultArticle, 
     InputTextMessageContent, 

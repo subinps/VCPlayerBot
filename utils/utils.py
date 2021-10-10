@@ -13,29 +13,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from logger import LOGGER
+from .logger import LOGGER
 try:
     from pyrogram.raw.types import InputChannel
-    from wrapt_timeout_decorator import timeout
     from apscheduler.schedulers.asyncio import AsyncIOScheduler   
     from apscheduler.jobstores.mongodb import MongoDBJobStore
     from apscheduler.jobstores.base import ConflictingIdError
     from pyrogram.raw.functions.channels import GetFullChannel
     from pytgcalls import StreamType
-    from youtube_dl import YoutubeDL
+    from yt_dlp import YoutubeDL
     from pyrogram import filters
     from pymongo import MongoClient
     from datetime import datetime
     from threading import Thread
+    from math import gcd
+    from .pyro_dl import Downloader
     from config import Config
     from asyncio import sleep  
     from bot import bot
+    from PTN import parse
     import subprocess
     import asyncio
+    import json
     import random
     import re
-    import ffmpeg
-    import json
     import time
     import sys
     import os
@@ -90,7 +91,7 @@ except ModuleNotFoundError:
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 if Config.DATABASE_URI:
-    from database import db
+    from .database import db
     monclient = MongoClient(Config.DATABASE_URI)
     jobstores = {
         'default': MongoDBJobStore(client=monclient, database=Config.DATABASE_NAME, collection='scheduler')
@@ -99,20 +100,21 @@ if Config.DATABASE_URI:
 else:
     scheduler = AsyncIOScheduler()
 scheduler.start()
-
+dl=Downloader()
 
 async def play():
     song=Config.playlist[0]    
     if song[3] == "telegram":
         file=Config.GET_FILE.get(song[5])
         if not file:
-            await download(song)
-        while not file:
-            await sleep(1)
-            file=Config.GET_FILE.get(song[5])
-            LOGGER.info("Downloading the file from TG")
+            file = await dl.pyro_dl(song[2])
+            Config.GET_FILE[song[5]] = file
         while not os.path.exists(file):
+            file=Config.GET_FILE.get(song[5])
             await sleep(1)
+        while not (os.stat(file).st_size) >= 0:
+            LOGGER.info("Waiting for download")
+            await sleep(2)
     elif song[3] == "url":
         file=song[2]
     else:
@@ -122,7 +124,8 @@ async def play():
             return await skip()     
         else:
             LOGGER.error("This stream is not supported , leaving VC.")
-            return False   
+            await leave_call()
+            return False 
     link, seek, pic, width, height = await chek_the_media(file, title=f"{song[1]}")
     if not link:
         LOGGER.warning("Unsupported link, Skiping from queue.")
@@ -130,6 +133,7 @@ async def play():
     await sleep(1)
     if Config.STREAM_LINK:
         Config.STREAM_LINK=False
+    LOGGER.info(f"STARTING PLAYING: {song[1]}")
     await join_call(link, seek, pic, width, height)
 
 async def schedule_a_play(job_id, date):
@@ -156,7 +160,7 @@ async def schedule_a_play(job_id, date):
             except ScheduleDateInvalid:
                 LOGGER.error("Unable to schedule VideoChat, since date is invalid")
             except Exception as e:
-                LOGGER.error(f"Error in scheduling voicechat- {e}")
+                LOGGER.error(f"Error in scheduling voicechat- {e}", exc_info=True)
     await sync_to_db()
 
 async def run_schedule(job_id):
@@ -219,11 +223,12 @@ async def skip():
     await clear_db_playlist(song=old_track)
     if old_track[3] == "telegram":
         file=Config.GET_FILE.get(old_track[5])
-        try:
-            os.remove(file)
-        except:
-            pass
-        del Config.GET_FILE[old_track[5]]
+        if file:
+            try:
+                os.remove(file)
+            except:
+                pass
+            del Config.GET_FILE[old_track[5]]
     if not Config.playlist \
         and Config.IS_LOOP:
         LOGGER.info("Loop Play enabled, switching to STARTUP_STREAM, since playlist is empty.")
@@ -240,7 +245,7 @@ async def skip():
     await play()
     if len(Config.playlist) <= 1:
         return
-    await download(Config.playlist[1])
+    #await download(Config.playlist[1])
 
 
 async def check_vc():
@@ -258,7 +263,7 @@ async def check_vc():
             await sleep(2)
             return True
         except Exception as e:
-            LOGGER.error(f"Unable to start new GroupCall :- {e}")
+            LOGGER.error(f"Unable to start new GroupCall :- {e}", exc_info=True)
             return False
     else:
         if Config.HAS_SCHEDULE:
@@ -336,20 +341,29 @@ async def join_and_play(link, seek, pic, width, height):
                     int(Config.CHAT),
                     AudioPiped(
                         link,
-                        audio_parameters=Config.AUDIO_Q,
+                        audio_parameters=AudioParameters(
+                            Config.BITRATE
+                            ),
                         additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
                         ),
                     stream_type=StreamType().pulse_stream,
                 )
             else:
                 if pic:
+                    cwidth, cheight = resize_ratio(1280, 720, Config.CUSTOM_QUALITY)
                     await group_call.join_group_call(
                         int(Config.CHAT),
                         AudioImagePiped(
                             link,
                             pic,
-                            audio_parameters=Config.AUDIO_Q,
-                            video_parameters=Config.VIDEO_Q,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
+                            ),
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE,
+                            ),
                             additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',                        ),
                         stream_type=StreamType().pulse_stream,
                     )
@@ -362,53 +376,51 @@ async def join_and_play(link, seek, pic, width, height):
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
                             return 
-                    if Config.BITRATE and Config.FPS: 
-                        await group_call.join_group_call(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=VideoParameters(
-                                    width,
-                                    height,
-                                    Config.FPS,
-                                ),
-                                audio_parameters=AudioParameters(
-                                    Config.BITRATE
-                                ),
-                                additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
-                                ),
-                            stream_type=StreamType().pulse_stream,
-                        )
-                    else:
-                        await group_call.join_group_call(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=Config.VIDEO_Q,
-                                audio_parameters=Config.AUDIO_Q,
-                                additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
-                                ),
-                            stream_type=StreamType().pulse_stream,
-                        )
+                    cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
+                    await group_call.join_group_call(
+                        int(Config.CHAT),
+                        AudioVideoPiped(
+                            link,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
+                            ),
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE
+                            ),
+                            additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+                            ),
+                        stream_type=StreamType().pulse_stream,
+                    )
         else:
             if not Config.IS_VIDEO:
                 await group_call.join_group_call(
                     int(Config.CHAT),
                     AudioPiped(
                         link,
-                        audio_parameters=Config.AUDIO_Q,
+                        audio_parameters=AudioParameters(
+                            Config.BITRATE
+                            ),
                         ),
                     stream_type=StreamType().pulse_stream,
                 )
             else:
                 if pic:
+                    cwidth, cheight = resize_ratio(1280, 720, Config.CUSTOM_QUALITY)
                     await group_call.join_group_call(
                         int(Config.CHAT),
                         AudioImagePiped(
                             link,
                             pic,
-                            video_parameters=Config.VIDEO_Q,
-                            audio_parameters=Config.AUDIO_Q,               
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
+                            ),
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE,
+                            ),      
                             ),
                         stream_type=StreamType().pulse_stream,
                     )
@@ -421,32 +433,22 @@ async def join_and_play(link, seek, pic, width, height):
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
                             return 
-                    if Config.FPS and Config.BITRATE:
-                        await group_call.join_group_call(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=VideoParameters(
-                                    width,
-                                    height,
-                                    Config.FPS,
-                                ),
-                                audio_parameters=AudioParameters(
-                                    Config.BITRATE
-                                ),
+                    cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
+                    await group_call.join_group_call(
+                        int(Config.CHAT),
+                        AudioVideoPiped(
+                            link,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
                             ),
-                            stream_type=StreamType().pulse_stream,
-                        )
-                    else:
-                        await group_call.join_group_call(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=Config.VIDEO_Q,
-                                audio_parameters=Config.AUDIO_Q
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE
                             ),
-                            stream_type=StreamType().pulse_stream,
-                        )
+                        ),
+                        stream_type=StreamType().pulse_stream,
+                    )
         Config.CALL_STATUS=True
         return True
     except NoActiveGroupCall:
@@ -462,25 +464,17 @@ async def join_and_play(link, seek, pic, width, height):
             await sleep(2)
             await restart_playout()
         except Exception as e:
-            LOGGER.error(f"Unable to start new GroupCall :- {e}")
+            LOGGER.error(f"Unable to start new GroupCall :- {e}", exc_info=True)
             pass
     except InvalidVideoProportion:
-        if not Config.FPS and not Config.BITRATE:
-            Config.FPS=20
-            Config.BITRATE=48000
-            await join_and_play(link, seek, pic, width, height)
-            Config.FPS=False
-            Config.BITRATE=False
-            return True
+        LOGGER.error("This video is unsupported")
+        if Config.playlist or Config.STREAM_LINK:
+            return await skip()     
         else:
-            LOGGER.error("Invalid video")
-            if Config.playlist or Config.STREAM_LINK:
-                return await skip()     
-            else:
-                LOGGER.error("This stream is not supported , leaving VC.")
-                return 
+            LOGGER.error("This stream is not supported , leaving VC.")
+            return 
     except Exception as e:
-        LOGGER.error(f"Errors Occured while joining, retrying Error- {e}")
+        LOGGER.error(f"Errors Occured while joining, retrying Error- {e}", exc_info=True)
         return False
 
 
@@ -494,19 +488,28 @@ async def change_file(link, seek, pic, width, height):
                     int(Config.CHAT),
                     AudioPiped(
                         link,
-                        audio_parameters=Config.AUDIO_Q,
+                        audio_parameters=AudioParameters(
+                            Config.BITRATE
+                            ),
                         additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
                         ),
                 )
             else:
                 if pic:
+                    cwidth, cheight = resize_ratio(1280, 720, Config.CUSTOM_QUALITY)
                     await group_call.change_stream(
                         int(Config.CHAT),
                         AudioImagePiped(
                             link,
                             pic,
-                            audio_parameters=Config.AUDIO_Q,
-                            video_parameters=Config.VIDEO_Q,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
+                            ),
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE,
+                            ),
                             additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',                        ),
                     )
                 else:
@@ -518,50 +521,50 @@ async def change_file(link, seek, pic, width, height):
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
                             return 
-                    if Config.FPS and Config.BITRATE:
-                        await group_call.change_stream(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=VideoParameters(
-                                    width,
-                                    height,
-                                    Config.FPS,
-                                ),
-                                audio_parameters=AudioParameters(
-                                    Config.BITRATE
-                                ),
-                                additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+
+                    cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
+                    await group_call.change_stream(
+                        int(Config.CHAT),
+                        AudioVideoPiped(
+                            link,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
                             ),
-                            )
-                    else:
-                        await group_call.change_stream(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=Config.VIDEO_Q,
-                                audio_parameters=Config.AUDIO_Q,
-                                additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE
                             ),
-                            )
+                            additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+                        ),
+                        )
         else:
             if not Config.IS_VIDEO:
                 await group_call.change_stream(
                     int(Config.CHAT),
                     AudioPiped(
                         link,
-                        audio_parameters=Config.AUDIO_Q
+                        audio_parameters=AudioParameters(
+                            Config.BITRATE
+                            ),
                         ),
                 )
             else:
                 if pic:
+                    cwidth, cheight = resize_ratio(1280, 720, Config.CUSTOM_QUALITY)
                     await group_call.change_stream(
                         int(Config.CHAT),
                         AudioImagePiped(
                             link,
                             pic,
-                            audio_parameters=Config.AUDIO_Q,
-                            video_parameters=Config.VIDEO_Q,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
+                            ),
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE,
+                            ),
                         ),
                     )
                 else:
@@ -573,47 +576,31 @@ async def change_file(link, seek, pic, width, height):
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
                             return 
-                    if Config.FPS and Config.BITRATE:
-                        await group_call.change_stream(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=VideoParameters(
-                                    width,
-                                    height,
-                                    Config.FPS,
-                                ),
-                                audio_parameters=AudioParameters(
-                                    Config.BITRATE,
-                                ),
+                    cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
+                    await group_call.change_stream(
+                        int(Config.CHAT),
+                        AudioVideoPiped(
+                            link,
+                            video_parameters=VideoParameters(
+                                cwidth,
+                                cheight,
+                                Config.FPS,
                             ),
-                            )
-                    else:
-                        await group_call.change_stream(
-                            int(Config.CHAT),
-                            AudioVideoPiped(
-                                link,
-                                video_parameters=Config.VIDEO_Q,
-                                audio_parameters=Config.AUDIO_Q,
+                            audio_parameters=AudioParameters(
+                                Config.BITRATE,
                             ),
-                            )
+                        ),
+                        )
     except InvalidVideoProportion:
-        if not Config.FPS and not Config.BITRATE:
-            Config.FPS=20
-            Config.BITRATE=48000
-            await join_and_play(link, seek, pic, width, height)
-            Config.FPS=False
-            Config.BITRATE=False
-            return True
+        LOGGER.error("Invalid video, skipped")
+        if Config.playlist or Config.STREAM_LINK:
+            return await skip()     
         else:
-            LOGGER.error("Invalid video, skipped")
-            if Config.playlist or Config.STREAM_LINK:
-                return await skip()     
-            else:
-                LOGGER.error("This stream is not supported , leaving VC.")
-                return 
+            LOGGER.error("This stream is not supported , leaving VC.")
+            await leave_call()
+            return 
     except Exception as e:
-        LOGGER.error(f"Error in joining call - {e}")
+        LOGGER.error(f"Error in joining call - {e}", exc_info=True)
         return False
 
 
@@ -645,7 +632,7 @@ async def leave_call():
     try:
         await group_call.leave_group_call(Config.CHAT)
     except Exception as e:
-        LOGGER.error(f"Errors while leaving call {e}")
+        LOGGER.error(f"Errors while leaving call {e}", exc_info=True)
     #Config.playlist.clear()
     if Config.STREAM_LINK:
         Config.STREAM_LINK=False
@@ -671,7 +658,7 @@ async def leave_call():
             except ScheduleDateInvalid:
                 LOGGER.error("Unable to schedule VideoChat, since date is invalid")
             except Exception as e:
-                LOGGER.error(f"Error in scheduling voicechat- {e}")
+                LOGGER.error(f"Error in scheduling voicechat- {e}", exc_info=True)
     await sync_to_db()
             
                 
@@ -682,12 +669,12 @@ async def restart():
         await group_call.leave_group_call(Config.CHAT)
         await sleep(2)
     except Exception as e:
-        LOGGER.error(e)
+        LOGGER.error(e, exc_info=True)
     if not Config.playlist:
         await start_stream()
         return
     LOGGER.info(f"- START PLAYING: {Config.playlist[0][1]}")
-    await sleep(2)
+    await sleep(1)
     await play()
     LOGGER.info("Restarting Playout")
     if len(Config.playlist) <= 1:
@@ -719,6 +706,9 @@ async def restart_playout():
 async def set_up_startup():
     regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
     match = re.match(regex, Config.STREAM_URL)
+    Config.YSTREAM=False
+    Config.YPLAY=False
+    Config.CPLAY=False
     if match:
         Config.YSTREAM=True
         LOGGER.info("YouTube Stream is set as STARTUP STREAM")
@@ -732,8 +722,12 @@ async def set_up_startup():
             Config.STREAM_URL="http://j78dp346yq5r-hls-live.5centscdn.com/safari/live.stream/playlist.m3u8"
             LOGGER.error("Unable to fetch youtube playlist, starting Safari TV")
             pass
+    elif Config.STREAM_URL.startswith("@") or (str(Config.STREAM_URL)).startswith("-100"):
+        Config.CPLAY = True
+        LOGGER.info(f"Channel Play enabled from {Config.STREAM_URL}")
     else:
-        Config.STREAM_URL=Config.STREAM_URL
+        LOGGER.info("Direct link set as STARTUP_STREAM")
+        pass
     Config.STREAM_SETUP=True
     
     
@@ -744,7 +738,10 @@ async def start_stream():
     if Config.YPLAY:
         await y_play(Config.STREAM_URL)
         return
-    if Config.YSTREAM:
+    elif Config.CPLAY:
+        await c_play(Config.STREAM_URL)
+        return
+    elif Config.YSTREAM:
         link=await get_link(Config.STREAM_URL)
     else:
         link=Config.STREAM_URL
@@ -780,7 +777,7 @@ async def get_link(file):
         try:
             ydl_info = ydl.extract_info(file, download=False)
         except Exception as e:
-            LOGGER.error(f"Errors occured while getting link from youtube video {e}")
+            LOGGER.error(f"Errors occured while getting link from youtube video {e}", exc_info=True)
             if Config.playlist or Config.STREAM_LINK:
                 return await skip()     
             else:
@@ -817,11 +814,11 @@ async def download(song, msg=None):
     if song[3] == "telegram":
         if not Config.GET_FILE.get(song[5]):
             try: 
-                original_file = await bot.download_media(song[2], progress=progress_bar, file_name=f'./tgdownloads/', progress_args=(int((song[5].split("_"))[1]), time.time(), msg))
-
+                original_file = await dl.pyro_dl(song[2])
                 Config.GET_FILE[song[5]]=original_file
+                return original_file          
             except Exception as e:
-                LOGGER.error(e)
+                LOGGER.error(e, exc_info=True)
                 Config.playlist.remove(song)
                 await clear_db_playlist(song=song)
                 if len(Config.playlist) <= 1:
@@ -835,29 +832,36 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
         width, height = None, None
         is_audio_=False
         try:
-            is_audio_ = is_audio(link)
-        except:
+            is_audio_ = await is_audio(link)
+        except Exception as e:
+            LOGGER.error(e, exc_info=True)
             is_audio_ = False
             LOGGER.error("Unable to get Audio properties within time.")
         if not is_audio_:
             Config.STREAM_LINK=False
             if Config.playlist or Config.STREAM_LINK:
-                return await skip()     
+                await skip()     
+                return None, None, None, None, None
             else:
                 LOGGER.error("This stream is not supported , leaving VC.")
                 return None, None, None, None, None
             
     else:
-        try:
-            width, height = get_height_and_width(link)
-        except:
-            width, height = None, None
-            LOGGER.error("Unable to get video properties within time.")
+        if os.path.isfile(link) \
+            and "audio" in Config.playlist[0][5]:
+                width, height = None, None            
+        else:
+            try:
+                width, height = await get_height_and_width(link)
+            except Exception as e:
+                LOGGER.error(e, exc_info=True)
+                width, height = None, None
+                LOGGER.error("Unable to get video properties within time.")
         if not width or \
             not height:
             is_audio_=False
             try:
-                is_audio_ = is_audio(link)
+                is_audio_ = await is_audio(link)
             except:
                 is_audio_ = False
                 LOGGER.error("Unable to get Audio properties within time.")
@@ -867,19 +871,20 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
                 if not os.path.exists(photo):
                     photo = await pic_.download(file_name=photo)
                 try:
-                    dur_=get_duration(link)
+                    dur_= await get_duration(link)
                 except:
-                    dur_='None'
+                    dur_=0
                 pic = get_image(title, photo, dur_) 
             else:
                 Config.STREAM_LINK=False
                 if Config.playlist or Config.STREAM_LINK:
-                    return await skip()     
+                    await skip()     
+                    return None, None, None, None, None
                 else:
                     LOGGER.error("This stream is not supported , leaving VC.")
                     return None, None, None, None, None
     try:
-        dur=get_duration(link)
+        dur= await get_duration(link)
     except:
         dur=0
     Config.DATA['FILE_DATA']={"file":link, 'dur':dur}
@@ -906,7 +911,7 @@ async def edit_title():
         edit = EditGroupCallTitle(call=full_chat.full_chat.call, title=title)
         await USER.send(edit)
     except Exception as e:
-        LOGGER.error(f"Errors Occured while editing title - {e}")
+        LOGGER.error(f"Errors Occured while editing title - {e}", exc_info=True)
         pass
 
 async def stop_recording():
@@ -1140,7 +1145,7 @@ async def send_playlist():
 
 async def send_text(text):
     message = await bot.send_message(
-        Config.LOG_GROUP,
+        int(Config.LOG_GROUP),
         text,
         reply_markup=await get_buttons(),
         disable_web_page_preview=True,
@@ -1190,7 +1195,7 @@ async def import_play_list(file):
             pass
         return True
     except Exception as e:
-        LOGGER.error(f"Errors while importing playlist {e}")
+        LOGGER.error(f"Errors while importing playlist {e}", exc_info=True)
         return False
 
 
@@ -1213,7 +1218,7 @@ async def y_play(playlist):
         if Config.SHUFFLE:
             await shuffle_playlist()
     except Exception as e:
-        LOGGER.error("Errors Occured While Importing Playlist", e)
+        LOGGER.error(f"Errors Occured While Importing Playlist - {e}", exc_info=True)
         Config.YSTREAM=True
         Config.YPLAY=False
         if Config.IS_LOOP:
@@ -1223,6 +1228,85 @@ async def y_play(playlist):
         return False
 
 
+async def c_play(channel):
+    if (str(channel)).startswith("-100"):
+        channel=int(channel)
+    else:
+        if channel.startswith("@"):
+            channel = channel.replace("@", "")  
+    try:
+        chat=await USER.get_chat(channel)
+        LOGGER.info(f"Searching files from {chat.title}")
+        me=["video", "document", "audio"]
+        who=0  
+        for filter in me:
+            if filter in Config.FILTERS:
+                async for m in USER.search_messages(chat_id=channel, filter=filter):
+                    you = await bot.get_messages(channel, m.message_id)
+                    now = datetime.now()
+                    nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
+                    if filter == "audio":
+                        title=you.audio.title
+                        file_id = you.audio.file_id
+                        unique = f"{nyav}_{m.message_id}_audio"                    
+                    elif filter == "video":
+                        file_id = you.video.file_id
+                        title = you.video.file_name
+                        unique = f"{nyav}_{m.message_id}_video"
+                    elif filter == "document":
+                        if not "video" in you.document.mime_type:
+                            LOGGER.info("Skiping Non-Video file")
+                            continue
+                        file_id=you.document.file_id
+                        title = you.document.file_name
+                        unique = f"{nyav}_{m.message_id}_document"
+                    if Config.PTN:
+                        ny = parse(title)
+                        title_ = ny.get("title")
+                        if title_:
+                            title = title_
+                    data={1:title, 2:file_id, 3:"telegram", 4:f"[{chat.title}]({you.link})", 5:unique}
+                    Config.playlist.append(data)
+                    await add_to_db_playlist(data)
+                    who += 1
+                    if not Config.CALL_STATUS \
+                        and len(Config.playlist) >= 1:
+                        LOGGER.info(f"Downloading {title}")
+                        await download(Config.playlist[0])
+                        await play()
+                        print(f"- START PLAYING: {title}")
+                    elif (len(Config.playlist) == 1 and Config.CALL_STATUS):
+                        LOGGER.info(f"Downloading {title}")
+                        await download(Config.playlist[0])  
+                        await play()              
+                    for track in Config.playlist[:2]:
+                        await download(track)
+        if who == 0:
+            LOGGER.warning(f"No files found in {chat.title}, Change filter settings if required. Current filters are {Config.FILTERS}")
+            if Config.CPLAY:
+                Config.CPLAY=False
+                Config.STREAM_URL="https://www.youtube.com/watch?v=zcrUCvBD16k"
+                LOGGER.warning("Seems like cplay is set as STARTUP_STREAM, Since nothing found on {chat.title}, switching to 24 News as startup stream.")
+                Config.STREAM_SETUP=False
+                await sync_to_db()
+                return False, f"No files found on given channel, Please check your filters.\nCurrent filters are {Config.FILTERS}"
+        else:
+            if len(Config.playlist) > 2 and Config.SHUFFLE:
+                await shuffle_playlist()
+            if Config.LOG_GROUP:
+                await send_playlist()          
+    except Exception as e:
+        LOGGER.error(f"Errors occured while fetching songs from given channel - {e}", exc_info=True)
+        if Config.CPLAY:
+            Config.CPLAY=False
+            Config.STREAM_URL="https://www.youtube.com/watch?v=zcrUCvBD16k"
+            LOGGER.warning("Seems like cplay is set as STARTUP_STREAM, and errors occured while getting playlist from given chat. Switching to 24 news as default stream.")
+            Config.STREAM_SETUP=False
+        await sync_to_db()
+        return False, f"Errors occured while getting files - {e}"
+    else:
+        return True, who
+
 async def pause():
     try:
         await group_call.pause_stream(Config.CHAT)
@@ -1231,7 +1315,7 @@ async def pause():
         await restart_playout()
         return False
     except Exception as e:
-        LOGGER.error(f"Errors Occured while pausing -{e}")
+        LOGGER.error(f"Errors Occured while pausing -{e}", exc_info=True)
         return False
 
 
@@ -1243,7 +1327,7 @@ async def resume():
         await restart_playout()
         return False
     except Exception as e:
-        LOGGER.error(f"Errors Occured while resuming -{e}")
+        LOGGER.error(f"Errors Occured while resuming -{e}", exc_info=True)
         return False
     
 
@@ -1254,7 +1338,7 @@ async def volume(volume):
     except BadRequest:
         await restart_playout()
     except Exception as e:
-        LOGGER.error(f"Errors Occured while changing volume Error -{e}")
+        LOGGER.error(f"Errors Occured while changing volume Error -{e}", exc_info=True)
     
 async def mute():
     try:
@@ -1264,7 +1348,7 @@ async def mute():
         await restart_playout()
         return False
     except Exception as e:
-        LOGGER.error(f"Errors Occured while muting -{e}")
+        LOGGER.error(f"Errors Occured while muting -{e}", exc_info=True)
         return False
 
 async def unmute():
@@ -1275,7 +1359,7 @@ async def unmute():
         await restart_playout()
         return False
     except Exception as e:
-        LOGGER.error(f"Errors Occured while unmuting -{e}")
+        LOGGER.error(f"Errors Occured while unmuting -{e}", exc_info=True)
         return False
 
 
@@ -1290,7 +1374,7 @@ async def get_admins(chat):
                 if not administrator.user.id in admins:
                     admins.append(administrator.user.id)
         except Exception as e:
-            LOGGER.error(f"Errors occured while getting admin list - {e}")
+            LOGGER.error(f"Errors occured while getting admin list - {e}", exc_info=True)
             pass
         Config.ADMINS=admins
         Config.ADMIN_CACHE=True
@@ -1613,83 +1697,70 @@ async def check_db():
     if not await db.is_saved('HAS_SCHEDULE'):
         db.add_config("HAS_SCHEDULE", Config.HAS_SCHEDULE)
     
-
-async def progress_bar(current, zero, total, start, msg):
-    now = time.time()
-    if total == 0:
-        return
-    if round((now - start) % 3) == 0 or current == total:
-        speed = current / (now - start)
-        percentage = current * 100 / total
-        time_to_complete = round(((total - current) / speed)) * 1000
-        time_to_complete = TimeFormatter(time_to_complete)
-        progressbar = "[{0}{1}]".format(\
-            ''.join(["▰" for i in range(math.floor(percentage / 5))]),
-            ''.join(["▱" for i in range(20 - math.floor(percentage / 5))])
-            )
-        current_message = f"**Downloading** {round(percentage, 2)}% \n{progressbar}\n⚡️ **Speed**: {humanbytes(speed)}/s\n⬇️ **Downloaded**: {humanbytes(current)} / {humanbytes(total)}\n🕰 **Time Left**: {time_to_complete}"
-        if msg:
-            try:
-                await msg.edit(text=current_message)
-            except:
-                pass
-        LOGGER.info(f"Downloading {round(percentage, 2)}% ")
-
-
-
-@timeout(10)
-def is_audio(file):
-    try:
-        k=ffmpeg.probe(file)['streams']
+    
+async def is_audio(file):
+    have_audio=False
+    ffprobe_cmd = ["ffprobe", "-i", file, "-v", "quiet", "-of", "json", "-show_streams"]
+    process = await asyncio.create_subprocess_exec(
+            *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+    output = await process.communicate()
+    stream = output[0].decode('utf-8')
+    out = json.loads(stream)
+    l = out.get("streams")
+    if not l:
+        return have_audio
+    for n in l:
+        k = n.get("codec_type")
         if k:
-            return True
-        else:
-            return False
-    except KeyError:
-        return False
-    except Exception as e:
-        LOGGER.error(f"Stream Unsupported {e} ")
-        return False
+            if k == "audio":
+                have_audio =True
+                break
+    return have_audio
     
 
-@timeout(10)#wait for maximum 10 sec, temp fix for ffprobe
-def get_height_and_width(file):
+async def get_height_and_width(file):
+    ffprobe_cmd = ["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height", "-of", "json", file]
+    process = await asyncio.create_subprocess_exec(
+        *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    output = await process.communicate()
+    stream = output[0].decode('utf-8')
+    out = json.loads(stream)
     try:
-        k=ffmpeg.probe(file)['streams']
-        width=None
-        height=None
-        for f in k:
-            try:
-                width=int(f["width"])
-                height=int(f["height"])
-                if height >= 256:
-                    break
-            except KeyError:
-                continue
-    except:
-        LOGGER.error("Error, This stream is not supported.")
+        n = out.get("streams")
+        if not n:
+            width, height = False, False
+        else:
+            width=n[0].get("width")
+            height=n[0].get("height")
+    except Exception as e:
         width, height = False, False
+        LOGGER.error(f"Unable to get video properties {e}", exc_info=True)
     return width, height
 
 
-@timeout(10)
-def get_duration(file):
+async def get_duration(file):
+    dur = 0
+    ffprobe_cmd = ["ffprobe", "-i", file, "-v", "error", "-show_entries", "format=duration", "-of", "json", "-select_streams", "v:0"]
+    process = await asyncio.create_subprocess_exec(
+        *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    output = await process.communicate()
     try:
-        total=ffmpeg.probe(file)['format']['duration']
-        return total
-    except:
-        return 0
-
-def humanbytes(size):
-    if not size:
-        return ""
-    power = 2**10
-    n = 0
-    Dic_powerN = {0: ' ', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
-    while size > power:
-        size /= power
-        n += 1
-    return str(round(size, 2)) + " " + Dic_powerN[n] + 'B'
+        stream = output[0].decode('utf-8')
+        out = json.loads(stream)
+        if out.get("format"):
+            if (out.get("format")).get("duration"):
+                dur = int(float((out.get("format")).get("duration")))
+            else:
+                dur = 0
+        else:
+            dur = 0
+    except Exception as e:
+        LOGGER.error(e, exc_info=True)
+        dur  = 0
+    return dur
 
 
 def get_player_string():
@@ -1731,18 +1802,6 @@ def get_volume_string():
     final=f" {str(current)} / {str(200)} {progressbar}  {e}"
     return final
 
-def TimeFormatter(milliseconds: int) -> str:
-    seconds, milliseconds = divmod(int(milliseconds), 1000)
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    days, hours = divmod(hours, 24)
-    tmp = ((str(days) + " days, ") if days else "") + \
-        ((str(hours) + " hours, ") if hours else "") + \
-        ((str(minutes) + " min, ") if minutes else "") + \
-        ((str(seconds) + " sec, ") if seconds else "") + \
-        ((str(milliseconds) + " millisec, ") if milliseconds else "")
-    return tmp[:-2]
-
 def set_config(value):
     if value:
         return False
@@ -1763,10 +1822,25 @@ def get_pause(status):
     else:
         return "Pause"
 
+#https://github.com/pytgcalls/pytgcalls/blob/dev/pytgcalls/types/input_stream/video_tools.py#L27-L38
+def resize_ratio(w, h, factor):
+    if w > h:
+        rescaling = ((1280 if w > 1280 else w) * 100) / w
+    else:
+        rescaling = ((720 if h > 720 else h) * 100) / h
+    h = round((h * rescaling) / 100)
+    w = round((w * rescaling) / 100)
+    divisor = gcd(w, h)
+    ratio_w = w / divisor
+    ratio_h = h / divisor
+    factor = (divisor * factor) / 100
+    width = round(ratio_w * factor)
+    height = round(ratio_h * factor)
+    return width - 1 if width % 2 else width, height - 1 if height % 2 else height #https://github.com/pytgcalls/pytgcalls/issues/118
 
 def stop_and_restart():
     os.system("git pull")
-    time.sleep(10)
+    time.sleep(5)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 
@@ -1774,7 +1848,7 @@ def get_image(title, pic, dur="Live"):
     newimage = "converted.jpg"
     image = Image.open(pic) 
     draw = ImageDraw.Draw(image) 
-    font = ImageFont.truetype('font.ttf', 70)
+    font = ImageFont.truetype('./utils/font.ttf', 70)
     title = title[0:30]
     MAX_W = 1790
     dur=convert(int(float(dur)))
@@ -1818,7 +1892,7 @@ async def update():
 async def startup_check():
     if Config.LOG_GROUP:
         try:
-            k=await bot.get_chat_member(Config.LOG_GROUP, Config.BOT_USERNAME)
+            k=await bot.get_chat_member(int(Config.LOG_GROUP), Config.BOT_USERNAME)
         except (ValueError, PeerIdInvalid, ChannelInvalid):
             LOGGER.error(f"LOG_GROUP var Found and @{Config.BOT_USERNAME} is not a member of the group.")
             Config.STARTUP_ERROR=f"LOG_GROUP var Found and @{Config.BOT_USERNAME} is not a member of the group."
@@ -1856,5 +1930,3 @@ async def startup_check():
     if not Config.DATABASE_URI:
         LOGGER.warning("No DATABASE_URI , found. It is recommended to use a database.")
     return True
-            
-

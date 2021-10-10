@@ -19,22 +19,15 @@ from utils import (
     sync_from_db
 )
 from user import group_call, USER
-from logger import LOGGER
+from utils import LOGGER
 from config import Config
 from pyrogram import idle
 from bot import bot
 import asyncio
 import os
 if Config.DATABASE_URI:
-    from database import Database
-    db = Database()
+    from utils import db
 
-    
-if not os.path.isdir("./downloads"):
-    os.makedirs("./downloads")
-else:
-    for f in os.listdir("./downloads"):
-        os.remove(f"./downloads/{f}")
 
 async def main():
     await bot.start()
@@ -52,11 +45,11 @@ async def main():
                         pass
             await sync_from_db()
         except Exception as e:
-            LOGGER.error(f"Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}")
+            LOGGER.error(f"Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}", exc_info=True)
             Config.STARTUP_ERROR="Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}"
             LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
             await bot.stop()
-            from debug import debug
+            from utils import debug
             await debug.start()
             await idle()
             return
@@ -64,7 +57,7 @@ async def main():
     if Config.DEBUG:
         LOGGER.info("Debugging enabled by user, Now in debug mode.")
         Config.STARTUP_ERROR="Debugging enabled by user, Now in debug mode."
-        from debug import debug
+        from utils import debug
         await bot.stop()
         await debug.start()
         await idle()
@@ -78,7 +71,7 @@ async def main():
             LOGGER.error("Startup checks not passed , bot is quiting")
             await bot.stop()
             LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
-            from debug import debug
+            from utils import debug
             await debug.start()
             await idle()
             return
@@ -91,10 +84,10 @@ async def main():
                 LOGGER.info("Loop play enabled , starting playing startup stream.")
                 await start_stream()
     except Exception as e:
-        LOGGER.error(f"Startup was unsuccesfull, Errors - {e}")
+        LOGGER.error(f"Startup was unsuccesfull, Errors - {e}", exc_info=True)
         LOGGER.info("Activating debug mode, you can reconfigure your bot with /env command.")
         Config.STARTUP_ERROR=f"Startup was unsuccesfull, Errors - {e}"
-        from debug import debug
+        from utils import debug
         await bot.stop()
         await debug.start()
         await idle()
