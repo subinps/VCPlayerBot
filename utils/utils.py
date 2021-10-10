@@ -1610,6 +1610,7 @@ async def sync_to_db():
         await db.edit_config("RECORDING_DUMP", Config.RECORDING_DUMP)
         await db.edit_config("RECORDING_TITLE", Config.RECORDING_TITLE)
         await db.edit_config("HAS_SCHEDULE", Config.HAS_SCHEDULE)
+        await db.edit_config("CUSTOM_QUALITY", Config.CUSTOM_QUALITY)
 
 
 async def sync_from_db():
@@ -1638,6 +1639,7 @@ async def sync_from_db():
         Config.RECORDING_DUMP = await db.get_config("RECORDING_DUMP")
         Config.RECORDING_TITLE = await db.get_config("RECORDING_TITLE")
         Config.HAS_SCHEDULE = await db.get_config("HAS_SCHEDULE")
+        Config.CUSTOM_QUALITY = await db.get_config("CUSTOM_QUALITY")
 
 async def add_to_db_playlist(song):
     if Config.DATABASE_URI:
@@ -1696,6 +1698,8 @@ async def check_db():
         db.add_config("RECORDING_TITLE", Config.RECORDING_TITLE)
     if not await db.is_saved('HAS_SCHEDULE'):
         db.add_config("HAS_SCHEDULE", Config.HAS_SCHEDULE)
+    if not await db.is_saved("CUSTOM_QUALITY"):
+        db.add_config("CUSTOM_QUALITY", Config.CUSTOM_QUALITY)
     
     
 async def is_audio(file):
@@ -1876,6 +1880,8 @@ async def edit_config(var, value):
         Config.REPLY_MESSAGE = value
     elif var == "RECORDING_DUMP":
         Config.RECORDING_DUMP = value
+    elif var == "QUALITY":
+        Config.CUSTOM_QUALITY = value
     await sync_to_db()
 
 

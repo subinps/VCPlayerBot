@@ -487,9 +487,10 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 Config.IS_VIDEO = set_config(Config.IS_VIDEO)
                 await query.message.edit_reply_markup(reply_markup=await settings_panel())
                 data=Config.DATA.get('FILE_DATA')
-                if not data.get('dur', 0) or \
-                    data.get('dur') == 0:
+                if not data \
+                    or data.get('dur', 0) == 0:
                     await restart_playout()
+                    return
                 k, reply = await seek_file(0)
                 if k == False:
                     await restart_playout()
