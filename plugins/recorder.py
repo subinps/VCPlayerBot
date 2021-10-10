@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from logger import LOGGER
+from utils import LOGGER
 from config import Config
 from pyrogram import (
     Client, 

@@ -12,7 +12,7 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from logger import LOGGER
+from utils import LOGGER
 from contextlib import suppress
 from config import Config
 import calendar
@@ -49,7 +49,7 @@ from pyrogram import (
 )
 IST = pytz.timezone(Config.TIME_ZONE)
 if Config.DATABASE_URI:
-    from database import db
+    from utils import db
 
 HOME_TEXT = "<b>Hey  [{}](tg://user?id={}) 🙋‍♂️\n\nIam A Bot Built To Play or Stream Videos In Telegram VoiceChats.\nI Can Stream Any YouTube Video Or A Telegram File Or Even A YouTube Live.</b>"
 admin_filter=filters.create(is_admin) 
@@ -216,7 +216,10 @@ async def update_handler(client, message):
                 db.add_config("RESTART", msg)
             else:
                 await db.edit_config("RESTART", msg)
-    await message.delete()
+    try:
+        await message.delete()
+    except:
+        pass
     await update()
 
 @Client.on_message(filters.command(['logs', f"logs@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)

@@ -12,7 +12,7 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from logger import LOGGER
+from .logger import LOGGER
 import motor.motor_asyncio
 from config import Config
 

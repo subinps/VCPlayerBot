@@ -12,15 +12,16 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from logger import LOGGER
+from utils import LOGGER
 import re
 import calendar
 from datetime import datetime
 from contextlib import suppress
 import pytz
 from config import Config
+from PTN import parse
 from youtube_search import YoutubeSearch
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 from pyrogram import(
     Client, 
@@ -107,7 +108,7 @@ async def schedule_vc(bot, message):
                         return """
                 #else:
                 try:
-                    has_audio_ = is_audio(query)
+                    has_audio_ = await is_audio(query)
                 except:
                     has_audio_ = False
                     LOGGER.error("Unable to get Audio properties within time.")
@@ -131,9 +132,16 @@ async def schedule_vc(bot, message):
         if type in ["video", "audio"]:
             if type == "audio":
                 title=m_video.title
+                unique = f"{nyav}_{m_video.file_size}_audio"
             else:
                 title=m_video.file_name
-            data={'1':title, '2':m_video.file_id, '3':"telegram", '4':user, '5':f"{nyav}_{m_video.file_size}"}
+                unique = f"{nyav}_{m_video.file_size}_audio"
+            if Config.PTN:
+                ny = parse(title)
+                title_ = ny.get("title")
+                if title_:
+                    title = title_
+            data={'1':title, '2':m_video.file_id, '3':"telegram", '4':user, '5':unique}
             sid=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[sid] = data
             await sync_to_db()
@@ -152,7 +160,7 @@ async def schedule_vc(bot, message):
                     await msg.edit(
                         "Song not found.\nTry inline mode.."
                     )
-                    LOGGER.error(str(e))
+                    LOGGER.error(str(e), exc_info=True)
                     await delete_messages([message, msg])
                     return
             else:
@@ -166,7 +174,7 @@ async def schedule_vc(bot, message):
             try:
                 info = ydl.extract_info(url, False)
             except Exception as e:
-                LOGGER.error(e)
+                LOGGER.error(e, exc_info=True)
                 await msg.edit(
                     f"YouTube Download Error ❌\nError:- {e}"
                     )
