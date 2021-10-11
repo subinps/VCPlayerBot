@@ -1854,7 +1854,7 @@ def get_image(title, pic, dur="Live"):
     draw = ImageDraw.Draw(image) 
     font = ImageFont.truetype('./utils/font.ttf', 70)
     title = title[0:30]
-    MAX_W = 1790
+    MAX_W = 1920
     dur=convert(int(float(dur)))
     if dur=="0:00:00":
         dur = "Live Stream"
@@ -1862,7 +1862,7 @@ def get_image(title, pic, dur="Live"):
     current_h, pad = 450, 20
     for line in para:
         w, h = draw.textsize(line, font=font)
-        draw.text(((MAX_W - w) / 2, current_h), line, font=font, fill ="skyblue")
+        draw.text(((MAX_W - w) / 2, current_h), line, font=font, fill ="white")
         current_h += h + pad
     image.save(newimage)
     return newimage
