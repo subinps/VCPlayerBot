@@ -202,6 +202,10 @@ async def add_to_playlist(_, message: Message):
                 await delete_messages([message, msg])
                 return
             title = info["title"]
+            if info['duration'] is None:
+                await msg.edit("This is a live stream, Use /stream command.")
+                await delete_messages([message, msg])
+                return 
             data={1:title, 2:url, 3:"youtube", 4:user, 5:f"{nyav}_{user_id}"}
             if message.command[0] == "fplay":
                 pla = [data] + Config.playlist

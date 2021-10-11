@@ -135,7 +135,7 @@ async def schedule_vc(bot, message):
                 unique = f"{nyav}_{m_video.file_size}_audio"
             else:
                 title=m_video.file_name
-                unique = f"{nyav}_{m_video.file_size}_audio"
+                unique = f"{nyav}_{m_video.file_size}_video"
             if Config.PTN:
                 ny = parse(title)
                 title_ = ny.get("title")
