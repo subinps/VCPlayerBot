@@ -102,9 +102,10 @@ async def cb_handler(client: Client, query: CallbackQuery):
             elif you == "recdumb":
                 text = "A channel to which all the recordings are forwarded. Make sure The User account is admin over there. Set one using /env or /config."
             await query.answer(text=text, show_alert=True)
+            return
 
 
-        if query.data.startswith("help"):
+        elif query.data.startswith("help"):
             if query.message.chat.type != "private" and query.message.reply_to_message.from_user is None:
                 return await query.answer("I cant help you here, since you are an anonymous admin, message me in private chat.", show_alert=True)
             elif query.message.chat.type != "private" and query.from_user.id != query.message.reply_to_message.from_user.id:
@@ -155,6 +156,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 await query.message.edit(Config.RECORDER_HELP, reply_markup=back, disable_web_page_preview=True)
             elif nyav == 'env':
                 await query.message.edit(Config.ENV_HELP, reply_markup=back, disable_web_page_preview=True)
+            return
             
         if not query.from_user.id in admins:
             await query.answer(
