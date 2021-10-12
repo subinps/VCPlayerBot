@@ -37,7 +37,8 @@ from utils import (
     sync_to_db,
     is_audio,
     chat_filter,
-    scheduler
+    scheduler,
+    is_ytdl_supported
 )
 
 from pyrogram.types import (
@@ -95,27 +96,15 @@ async def schedule_vc(bot, message):
                 type="youtube"
                 yturl=query
             elif query.startswith("http"):
-                """if Config.IS_VIDEO:
-                    try:
-                        width, height = get_height_and_width(query)
-                    except:
-                        width, height = None, None
-                        LOGGER.error("Unable to get video properties within time.")
-                    if not width or \
-                        not height:
+                has_audio_ = await is_audio(query)
+                if not has_audio_:
+                    if is_ytdl_supported(query):
+                        type="ytdl_s"
+                        url=query
+                    else:
                         await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
                         await delete_messages([message, msg])
-                        return """
-                #else:
-                try:
-                    has_audio_ = await is_audio(query)
-                except:
-                    has_audio_ = False
-                    LOGGER.error("Unable to get Audio properties within time.")
-                if not has_audio_:
-                    await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
-                    await delete_messages([message, msg])
-                    return
+                        return
                 type="direct"
                 url=query
             else:
@@ -145,7 +134,7 @@ async def schedule_vc(bot, message):
             sid=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[sid] = data
             await sync_to_db()
-        elif type=="youtube" or type=="query":
+        elif type in ["youtube", "query", "ytdl_s"]:
             if type=="youtube":
                 await msg.edit("⚡️ **Fetching Video From YouTube...**")
                 url=yturl
@@ -163,6 +152,8 @@ async def schedule_vc(bot, message):
                     LOGGER.error(str(e), exc_info=True)
                     await delete_messages([message, msg])
                     return
+            elif type == "ytdl_s":
+                url=url
             else:
                 return
             ydl_opts = {
@@ -181,7 +172,14 @@ async def schedule_vc(bot, message):
                 LOGGER.error(str(e))
                 await delete_messages([message, msg])
                 return
-            title = info["title"]
+            if type == "ytdl_s":
+                title = "Music"
+                try:
+                    title=info['title']
+                except:
+                    pass
+            else:
+                title = info["title"]
             data={'1':title, '2':url, '3':"youtube", '4':user, '5':f"{nyav}_{user_id}"}
             sid=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[sid] = data
