@@ -21,7 +21,7 @@ try:
     from apscheduler.jobstores.base import ConflictingIdError
     from pyrogram.raw.functions.channels import GetFullChannel
     from pytgcalls import StreamType
-    from yt_dlp import YoutubeDL
+    import yt_dlp
     from pyrogram import filters
     from pymongo import MongoClient
     from datetime import datetime
@@ -36,7 +36,6 @@ try:
     import asyncio
     import json
     import random
-    import re
     import time
     import sys
     import os
@@ -109,6 +108,7 @@ async def play():
         if not file:
             file = await dl.pyro_dl(song[2])
             Config.GET_FILE[song[5]] = file
+            await sleep(3)
         while not os.path.exists(file):
             file=Config.GET_FILE.get(song[5])
             await sleep(1)
@@ -705,7 +705,7 @@ async def restart_playout():
 
 
 def is_ytdl_supported(input_url: str) -> bool:
-    shei = YoutubeDL.extractor.gen_extractors()
+    shei = yt_dlp.extractor.gen_extractors()
     return any(int_extraactor.suitable(input_url) and int_extraactor.IE_NAME != "generic" for int_extraactor in shei)
 
 
@@ -777,44 +777,32 @@ async def stream_from_link(link):
     return True, None
 
 
-
 async def get_link(file):
-    def_ydl_opts = {'quiet': True, 'prefer_insecure': False, "geo-bypass": True}
-    with YoutubeDL(def_ydl_opts) as ydl:
-        try:
-            ydl_info = ydl.extract_info(file, download=False)
-        except Exception as e:
-            LOGGER.error(f"Errors occured while getting link from youtube video {e}", exc_info=True)
-            if Config.playlist or Config.STREAM_LINK:
-                return await skip()     
-            else:
-                LOGGER.error("This stream is not supported , leaving VC.")
-                return False
-        url=None
-        for each in ydl_info['formats']:
-            if each['width'] == 640 \
-                and each['acodec'] != 'none' \
-                    and each['vcodec'] != 'none':
-                    url=each['url']
-                    break #prefer 640x360
-            elif each['width'] \
-                and each['width'] <= 1280 \
-                    and each['acodec'] != 'none' \
-                        and each['vcodec'] != 'none':
-                        url=each['url']
-                        continue # any other format less than 1280
-            else:
-                continue
-        if url:
-            return url
+    ytdl_cmd = [ "yt-dlp", "--geo-bypass", "-g", "-f", "best[height<=?720][width<=?1280]/best", file]
+    process = await asyncio.create_subprocess_exec(
+        *ytdl_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    output, err = await process.communicate()
+    if not output:
+        LOGGER.error(str(err.decode()))
+        if Config.playlist or Config.STREAM_LINK:
+            return await skip()
         else:
-            LOGGER.error(f"Errors occured while getting link from youtube video - No Video Formats Found")
-            if Config.playlist or Config.STREAM_LINK:
-                return await skip()     
-            else:
-                LOGGER.error("This stream is not supported , leaving VC.")
-                return False
-
+            LOGGER.error("This stream is not supported , leaving VC.")
+            await leave_call()
+            return False
+    stream = output.decode().strip()
+    link = (stream.split("\n"))[-1]
+    if link:
+        return link
+    else:
+        LOGGER.error("Unable to get sufficient info from link")
+        if Config.playlist or Config.STREAM_LINK:
+            return await skip()
+        else:
+            LOGGER.error("This stream is not supported , leaving VC.")
+            await leave_call()
+            return False
 
 
 async def download(song, msg=None):
