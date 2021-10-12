@@ -703,9 +703,16 @@ async def restart_playout():
         return
     await download(Config.playlist[1])
 
+
+def is_ytdl_supported(input_url: str) -> bool:
+    shei = YoutubeDL.extractor.gen_extractors()
+    return any(int_extraactor.suitable(input_url) and int_extraactor.IE_NAME != "generic" for int_extraactor in shei)
+
+
 async def set_up_startup():
     regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
-    match = re.match(regex, Config.STREAM_URL)
+    # match = re.match(regex, Config.STREAM_URL)
+    match = is_ytdl_supported(Config.STREAM_URL)
     Config.YSTREAM=False
     Config.YPLAY=False
     Config.CPLAY=False
