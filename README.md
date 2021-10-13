@@ -1,11 +1,5 @@
 # VCPlayerBot
 
-![GitHub Repo stars](https://img.shields.io/github/stars/Hasintha-Nirmal/VCPlayerBot?color=blue&style=flat)
-![GitHub issues](https://img.shields.io/github/issues/Hasintha-Nirmal/VCPlayerBot)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/Hasintha-Nirmal/VCPlayerBot)
-![GitHub contributors](https://img.shields.io/github/contributors/Hasintha-Nirmal/VCPlayerBot?style=flat)
-![GitHub forks](https://img.shields.io/github/forks/Hasintha-Nirmal/VCPlayerBot?style=flat)
-
 Telegram bot to stream videos in telegram voicechat for both groups and channels. Supports live streams, YouTube videos and telegram media. With record stream support, Schedule streams, and many more.
 
 ## Config Vars:
