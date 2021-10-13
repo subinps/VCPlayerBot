@@ -1,10 +1,10 @@
 # VCPlayerBot
 
-![GitHub Repo stars](https://img.shields.io/github/stars/subinps/VCPlayerBot?color=blue&style=flat)
-![GitHub issues](https://img.shields.io/github/issues/subinps/VCPlayerBot)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/subinps/VCPlayerBot)
-![GitHub contributors](https://img.shields.io/github/contributors/subinps/VCPlayerBot?style=flat)
-![GitHub forks](https://img.shields.io/github/forks/subinps/VCPlayerBot?style=flat)
+![GitHub Repo stars](https://img.shields.io/github/stars/Hasintha-Nirmal/VCPlayerBot?color=blue&style=flat)
+![GitHub issues](https://img.shields.io/github/issues/Hasintha-Nirmal/VCPlayerBot)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/Hasintha-Nirmal/VCPlayerBot)
+![GitHub contributors](https://img.shields.io/github/contributors/Hasintha-Nirmal/VCPlayerBot?style=flat)
+![GitHub forks](https://img.shields.io/github/forks/Hasintha-Nirmal/VCPlayerBot?style=flat)
 
 Telegram bot to stream videos in telegram voicechat for both groups and channels. Supports live streams, YouTube videos and telegram media. With record stream support, Schedule streams, and many more.
 
@@ -89,9 +89,9 @@ python3 main.py
 
 ### Note
 
-[Note To A So Called Dev](https://telegram.dog/subin_works/203): 
+[Note To A So Called Dev](https://telegram.dog/Hasintha_Nirmal): 
 
-Kanging this codes and and editing a few lines and releasing a V.x  or an [alpha](https://telegram.dog/subin_works/204), beta , gama branches of your repo wont make you a Developer.
+Kanging this codes and and editing a few lines and releasing a V.x  or an [alpha](https://telegram.dog/Hasintha_Nirmal), beta , gama branches of your repo wont make you a Developer.
 Fork the repo and edit as per your needs.
 
 ## LICENSE
