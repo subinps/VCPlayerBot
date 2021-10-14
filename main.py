@@ -16,7 +16,8 @@ from utils import (
     play, 
     start_stream,
     startup_check, 
-    sync_from_db
+    sync_from_db,
+    check_changes
 )
 from user import group_call, USER
 from utils import LOGGER
@@ -25,6 +26,7 @@ from pyrogram import idle
 from bot import bot
 import asyncio
 import os
+
 if Config.DATABASE_URI:
     from utils import db
 
@@ -43,6 +45,7 @@ async def main():
                         await db.del_config("RESTART")
                     except:
                         pass
+            await check_changes()
             await sync_from_db()
         except Exception as e:
             LOGGER.error(f"Errors occured while setting up database for VCPlayerBot, check the value of DATABASE_URI. Full error - {str(e)}", exc_info=True)

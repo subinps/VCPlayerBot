@@ -107,14 +107,19 @@ async def play():
         file=Config.GET_FILE.get(song[5])
         if not file:
             file = await dl.pyro_dl(song[2])
+            if not file:
+                LOGGER.info("Downloading file from telegram")
+                file = await bot.download_media(song[2])
             Config.GET_FILE[song[5]] = file
             await sleep(3)
         while not os.path.exists(file):
             file=Config.GET_FILE.get(song[5])
             await sleep(1)
-        while not (os.stat(file).st_size) >= 0:
+        total=int(((song[5].split("_"))[1])) * 0.005
+        while not (os.stat(file).st_size) >= total:
             LOGGER.info("Waiting for download")
-            await sleep(2)
+            LOGGER.info(str((os.stat(file).st_size)))
+            await sleep(1)
     elif song[3] == "url":
         file=song[2]
     else:
@@ -710,28 +715,25 @@ def is_ytdl_supported(input_url: str) -> bool:
 
 
 async def set_up_startup():
-    regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
-    # match = re.match(regex, Config.STREAM_URL)
-    match = is_ytdl_supported(Config.STREAM_URL)
     Config.YSTREAM=False
     Config.YPLAY=False
     Config.CPLAY=False
+    #regex = r"^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?"
+    # match = re.match(regex, Config.STREAM_URL)
+    if Config.STREAM_URL.startswith("@") or (str(Config.STREAM_URL)).startswith("-100"):
+        Config.CPLAY = True
+        LOGGER.info(f"Channel Play enabled from {Config.STREAM_URL}")
+        Config.STREAM_SETUP=True
+        return
+    elif Config.STREAM_URL.startswith("https://t.me/DumpPlaylist"):
+        Config.YPLAY=True
+        LOGGER.info("YouTube Playlist is set as STARTUP STREAM")
+        Config.STREAM_SETUP=True
+        return
+    match = is_ytdl_supported(Config.STREAM_URL)
     if match:
         Config.YSTREAM=True
         LOGGER.info("YouTube Stream is set as STARTUP STREAM")
-    elif Config.STREAM_URL.startswith("https://t.me/DumpPlaylist"):
-        try:
-            msg_id=Config.STREAM_URL.split("/", 4)[4]
-            Config.STREAM_URL=int(msg_id)
-            Config.YPLAY=True
-            LOGGER.info("YouTube Playlist is set as STARTUP STREAM")
-        except:
-            Config.STREAM_URL="http://j78dp346yq5r-hls-live.5centscdn.com/safari/live.stream/playlist.m3u8"
-            LOGGER.error("Unable to fetch youtube playlist, starting Safari TV")
-            pass
-    elif Config.STREAM_URL.startswith("@") or (str(Config.STREAM_URL)).startswith("-100"):
-        Config.CPLAY = True
-        LOGGER.info(f"Channel Play enabled from {Config.STREAM_URL}")
     else:
         LOGGER.info("Direct link set as STARTUP_STREAM")
         pass
@@ -743,7 +745,12 @@ async def start_stream():
     if not Config.STREAM_SETUP:
         await set_up_startup()
     if Config.YPLAY:
-        await y_play(Config.STREAM_URL)
+        try:
+            msg_id=Config.STREAM_URL.split("/", 4)[4]
+        except:
+            LOGGER.error("Unable to fetch youtube playlist.Recheck your startup stream.")
+            pass
+        await y_play(int(msg_id))
         return
     elif Config.CPLAY:
         await c_play(Config.STREAM_URL)
@@ -833,6 +840,7 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
             is_audio_ = False
             LOGGER.error("Unable to get Audio properties within time.")
         if not is_audio_:
+            LOGGER.error("No Audio Source found")
             Config.STREAM_LINK=False
             if Config.playlist or Config.STREAM_LINK:
                 await skip()     
@@ -1241,12 +1249,19 @@ async def c_play(channel):
                     now = datetime.now()
                     nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
                     if filter == "audio":
-                        if you.audio.performer is not None:
-                            title = f"{you.audio.performer} - {you.audio.title}"
+                        if you.audio.title is None:
+                            if you.audio.file_name is None:
+                                title_ = "Music"
+                            else:
+                                title_ = you.audio.file_name
                         else:
-                            title = you.audio.title
+                            title_ = you.audio.title
+                        if you.audio.performer is not None:
+                            title = f"{you.audio.performer} - {title_}"
+                        else:
+                            title=title_
                         file_id = you.audio.file_id
-                        unique = f"{nyav}_{m.message_id}_audio"                    
+                        unique = f"{nyav}_{you.audio.file_size}_audio"                    
                     elif filter == "video":
                         file_id = you.video.file_id
                         title = you.video.file_name
@@ -1255,19 +1270,21 @@ async def c_play(channel):
                             title_ = ny.get("title")
                             if title_:
                                 title = title_
-                        unique = f"{nyav}_{m.message_id}_video"
+                        unique = f"{nyav}_{you.video.file_size}_video"
                     elif filter == "document":
                         if not "video" in you.document.mime_type:
                             LOGGER.info("Skiping Non-Video file")
                             continue
                         file_id=you.document.file_id
                         title = you.document.file_name
-                        unique = f"{nyav}_{m.message_id}_document"
+                        unique = f"{nyav}_{you.document.file_size}_document"
                         if Config.PTN:
                             ny = parse(title)
                             title_ = ny.get("title")
                             if title_:
                                 title = title_
+                    if title is None:
+                        title = "Music"
                     data={1:title, 2:file_id, 3:"telegram", 4:f"[{chat.title}]({you.link})", 5:unique}
                     Config.playlist.append(data)
                     await add_to_db_playlist(data)
@@ -1282,8 +1299,6 @@ async def c_play(channel):
                         LOGGER.info(f"Downloading {title}")
                         await download(Config.playlist[0])  
                         await play()              
-                    for track in Config.playlist[:2]:
-                        await download(track)
         if who == 0:
             LOGGER.warning(f"No files found in {chat.title}, Change filter settings if required. Current filters are {Config.FILTERS}")
             if Config.CPLAY:
@@ -1294,10 +1309,14 @@ async def c_play(channel):
                 await sync_to_db()
                 return False, f"No files found on given channel, Please check your filters.\nCurrent filters are {Config.FILTERS}"
         else:
+            if Config.DATABASE_URI:
+                Config.playlist = await db.get_playlist()
             if len(Config.playlist) > 2 and Config.SHUFFLE:
                 await shuffle_playlist()
             if Config.LOG_GROUP:
-                await send_playlist()          
+                await send_playlist() 
+            for track in Config.playlist[:2]:
+                await download(track)         
     except Exception as e:
         LOGGER.error(f"Errors occured while fetching songs from given channel - {e}", exc_info=True)
         if Config.CPLAY:
@@ -1590,59 +1609,16 @@ async def delete_messages(messages):
 #Database Config
 async def sync_to_db():
     if Config.DATABASE_URI:
-        await check_db() 
-        await db.edit_config("ADMINS", Config.ADMINS)
-        await db.edit_config("IS_VIDEO", Config.IS_VIDEO)
-        await db.edit_config("IS_LOOP", Config.IS_LOOP)
-        await db.edit_config("REPLY_PM", Config.REPLY_PM)
-        await db.edit_config("ADMIN_ONLY", Config.ADMIN_ONLY)  
-        await db.edit_config("SHUFFLE", Config.SHUFFLE)
-        await db.edit_config("EDIT_TITLE", Config.EDIT_TITLE)
-        await db.edit_config("CHAT", Config.CHAT)
-        await db.edit_config("SUDO", Config.SUDO)
-        await db.edit_config("REPLY_MESSAGE", Config.REPLY_MESSAGE)
-        await db.edit_config("LOG_GROUP", Config.LOG_GROUP)
-        await db.edit_config("STREAM_URL", Config.STREAM_URL)
-        await db.edit_config("DELAY", Config.DELAY)
-        await db.edit_config("SCHEDULED_STREAM", Config.SCHEDULED_STREAM)
-        await db.edit_config("SCHEDULE_LIST", Config.SCHEDULE_LIST)
-        await db.edit_config("IS_VIDEO_RECORD", Config.IS_VIDEO_RECORD)
-        await db.edit_config("IS_RECORDING", Config.IS_RECORDING)
-        await db.edit_config("WAS_RECORDING", Config.WAS_RECORDING)
-        await db.edit_config("PORTRAIT", Config.PORTRAIT)
-        await db.edit_config("RECORDING_DUMP", Config.RECORDING_DUMP)
-        await db.edit_config("RECORDING_TITLE", Config.RECORDING_TITLE)
-        await db.edit_config("HAS_SCHEDULE", Config.HAS_SCHEDULE)
-        await db.edit_config("CUSTOM_QUALITY", Config.CUSTOM_QUALITY)
-
+        await check_db()
+        for var in Config.CONFIG_LIST:
+            await db.edit_config(var, getattr(Config, var))
 
 async def sync_from_db():
     if Config.DATABASE_URI:  
-        await check_db()     
-        Config.ADMINS = await db.get_config("ADMINS") 
-        Config.IS_VIDEO = await db.get_config("IS_VIDEO")
-        Config.IS_LOOP = await db.get_config("IS_LOOP")
-        Config.REPLY_PM = await db.get_config("REPLY_PM")
-        Config.ADMIN_ONLY = await db.get_config("ADMIN_ONLY")
-        Config.SHUFFLE = await db.get_config("SHUFFLE")
-        Config.EDIT_TITLE = await db.get_config("EDIT_TITLE")
-        Config.CHAT = int(await db.get_config("CHAT"))
+        await check_db() 
+        for var in Config.CONFIG_LIST:
+            setattr(Config, var, await db.get_config(var))
         Config.playlist = await db.get_playlist()
-        Config.LOG_GROUP = await db.get_config("LOG_GROUP")
-        Config.SUDO = await db.get_config("SUDO") 
-        Config.REPLY_MESSAGE = await db.get_config("REPLY_MESSAGE") 
-        Config.DELAY = await db.get_config("DELAY") 
-        Config.STREAM_URL = await db.get_config("STREAM_URL") 
-        Config.SCHEDULED_STREAM = await db.get_config("SCHEDULED_STREAM") 
-        Config.SCHEDULE_LIST = await db.get_config("SCHEDULE_LIST")
-        Config.IS_VIDEO_RECORD = await db.get_config('IS_VIDEO_RECORD')
-        Config.IS_RECORDING = await db.get_config("IS_RECORDING")
-        Config.WAS_RECORDING = await db.get_config('WAS_RECORDING')
-        Config.PORTRAIT = await db.get_config("PORTRAIT")
-        Config.RECORDING_DUMP = await db.get_config("RECORDING_DUMP")
-        Config.RECORDING_TITLE = await db.get_config("RECORDING_TITLE")
-        Config.HAS_SCHEDULE = await db.get_config("HAS_SCHEDULE")
-        Config.CUSTOM_QUALITY = await db.get_config("CUSTOM_QUALITY")
 
 async def add_to_db_playlist(song):
     if Config.DATABASE_URI:
@@ -1657,52 +1633,25 @@ async def clear_db_playlist(song=None, all=False):
             await db.del_song(song[5])
 
 async def check_db():
-    if not await db.is_saved("ADMINS"):
-        db.add_config("ADMINS", Config.ADMINS)
-    if not await db.is_saved("IS_VIDEO"):
-        db.add_config("IS_VIDEO", Config.IS_VIDEO)
-    if not await db.is_saved("IS_LOOP"):
-        db.add_config("IS_LOOP", Config.IS_LOOP)
-    if not await db.is_saved("REPLY_PM"):
-        db.add_config("REPLY_PM", Config.REPLY_PM)
-    if not await db.is_saved("ADMIN_ONLY"):
-        db.add_config("ADMIN_ONLY", Config.ADMIN_ONLY)
-    if not await db.is_saved("SHUFFLE"):
-        db.add_config("SHUFFLE", Config.SHUFFLE)
-    if not await db.is_saved("EDIT_TITLE"):
-        db.add_config("EDIT_TITLE", Config.EDIT_TITLE)
-    if not await db.is_saved("CHAT"):
-        db.add_config("CHAT", Config.CHAT)
-    if not await db.is_saved("SUDO"):
-        db.add_config("SUDO", Config.SUDO)
-    if not await db.is_saved("REPLY_MESSAGE"):
-        db.add_config("REPLY_MESSAGE", Config.REPLY_MESSAGE)
-    if not await db.is_saved("STREAM_URL"):
-        db.add_config("STREAM_URL", Config.STREAM_URL)
-    if not await db.is_saved("DELAY"):
-        db.add_config("DELAY", Config.DELAY)
-    if not await db.is_saved("LOG_GROUP"):
-        db.add_config("LOG_GROUP", Config.LOG_GROUP)
-    if not await db.is_saved("SCHEDULED_STREAM"):
-        db.add_config("SCHEDULED_STREAM", Config.SCHEDULED_STREAM)
-    if not await db.is_saved("SCHEDULE_LIST"):
-        db.add_config("SCHEDULE_LIST", Config.SCHEDULE_LIST)
-    if not await db.is_saved("IS_VIDEO_RECORD"):
-        db.add_config("IS_VIDEO_RECORD", Config.IS_VIDEO_RECORD)
-    if not await db.is_saved("PORTRAIT"):
-        db.add_config("PORTRAIT", Config.PORTRAIT)  
-    if not await db.is_saved("IS_RECORDING"):
-        db.add_config("IS_RECORDING", Config.IS_RECORDING)
-    if not await db.is_saved('WAS_RECORDING'):
-        db.add_config('WAS_RECORDING', Config.WAS_RECORDING)
-    if not await db.is_saved("RECORDING_DUMP"):
-        db.add_config("RECORDING_DUMP", Config.RECORDING_DUMP)
-    if not await db.is_saved("RECORDING_TITLE"):
-        db.add_config("RECORDING_TITLE", Config.RECORDING_TITLE)
-    if not await db.is_saved('HAS_SCHEDULE'):
-        db.add_config("HAS_SCHEDULE", Config.HAS_SCHEDULE)
-    if not await db.is_saved("CUSTOM_QUALITY"):
-        db.add_config("CUSTOM_QUALITY", Config.CUSTOM_QUALITY)
+    for var in Config.CONFIG_LIST:
+        if not await db.is_saved(var):
+            db.add_config(var, getattr(Config, var))
+
+async def check_changes():
+    if Config.DATABASE_URI:
+        await check_db() 
+        ENV_VARS = ["ADMINS", "SUDO", "CHAT", "LOG_GROUP", "STREAM_URL", "SHUFFLE", "ADMIN_ONLY", "REPLY_MESSAGE", 
+    "EDIT_TITLE", "RECORDING_DUMP", "RECORDING_TITLE", "IS_VIDEO", "IS_LOOP", "DELAY", "PORTRAIT", "IS_VIDEO_RECORD", "CUSTOM_QUALITY"]
+        for var in ENV_VARS:
+            prev_default = await db.get_default(var)
+            if prev_default is None:
+                await db.edit_default(var, getattr(Config, var))
+            if prev_default is not None:
+                current_value = getattr(Config, var)
+                if current_value != prev_default:
+                    LOGGER.info("ENV change detected, Changing value in database.")
+                    await db.edit_config(var, current_value)
+                    await db.edit_default(var, current_value)         
     
     
 async def is_audio(file):
@@ -1731,12 +1680,20 @@ async def get_height_and_width(file):
     process = await asyncio.create_subprocess_exec(
         *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
-    output = await process.communicate()
-    stream = output[0].decode('utf-8')
+    output, err = await process.communicate()
+    stream = output.decode('utf-8')
     out = json.loads(stream)
     try:
         n = out.get("streams")
         if not n:
+            LOGGER.error(err.decode())
+            if os.path.isfile(file):#if ts a file, its a tg file
+                LOGGER.info("Play from DC6 Failed, Downloading the file")
+                total=int((((Config.playlist[0][5]).split("_"))[1]))
+                while not (os.stat(file).st_size) >= total:
+                    LOGGER.info(f"Downloading {Config.playlist[0][1]} - Completed - {round(((int(os.stat(file).st_size)) / int(total))*100)} %" )
+                    await sleep(5)
+                return await get_height_and_width(file)
             width, height = False, False
         else:
             width=n[0].get("width")
