@@ -46,7 +46,7 @@ async def recording_title(bot, message):
     if " " in message.text:
         cmd, title = message.text.split(" ", 1)
     else:
-        await m.edit("Give me a new title. Use /rtitle < Custom Title >\nUse <code>False</code> to revert to default title")
+        await m.edit("Give me a new title. Use /vcrtitle < Custom Title >\nUse <code>False</code> to revert to default title")
         await delete_messages([message, m])
         return
 
