@@ -1619,6 +1619,8 @@ async def sync_from_db():
         for var in Config.CONFIG_LIST:
             setattr(Config, var, await db.get_config(var))
         Config.playlist = await db.get_playlist()
+        if Config.playlist and Config.SHUFFLE:
+            await shuffle_playlist()
 
 async def add_to_db_playlist(song):
     if Config.DATABASE_URI:
