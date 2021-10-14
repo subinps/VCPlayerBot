@@ -175,7 +175,7 @@ async def set_vol(_, m: Message):
     
 
 
-@Client.on_message(filters.command(['mute', f"mute@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(['vcmute', f"vcmute@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def set_mute(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
@@ -197,7 +197,7 @@ async def set_mute(_, m: Message):
         k = await m.reply_text("Already muted.")
         await delete_messages([m, k])
     
-@Client.on_message(filters.command(['unmute', f"unmute@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(['vcunmute', f"vcunmute@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def set_unmute(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(

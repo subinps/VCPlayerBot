@@ -120,10 +120,17 @@ async def schedule_vc(bot, message):
         nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
         if type in ["video", "audio"]:
             if type == "audio":
-                if m_video.performer is not None:
-                    title = f"{m_video.performer} - {m_video.title}"
+                if m_video.title is None:
+                    if m_video.file_name is None:
+                        title_ = "Music"
+                    else:
+                        title_ = m_video.file_name
                 else:
-                    title=m_video.title
+                    title_ = m_video.title
+                if m_video.performer is not None:
+                    title = f"{m_video.performer} - {title_}"
+                else:
+                    title=title_
                 unique = f"{nyav}_{m_video.file_size}_audio"
             else:
                 title=m_video.file_name
@@ -133,6 +140,8 @@ async def schedule_vc(bot, message):
                     title_ = ny.get("title")
                     if title_:
                         title = title_
+            if title is None:
+                title = 'Music'
             data={'1':title, '2':m_video.file_id, '3':"telegram", '4':user, '5':unique}
             sid=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[sid] = data
