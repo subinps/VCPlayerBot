@@ -1241,7 +1241,10 @@ async def c_play(channel):
                     now = datetime.now()
                     nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
                     if filter == "audio":
-                        title=f"{you.audio.performer} - {you.audio.title}"
+                        if you.audio.performer is not None:
+                            title = f"{you.audio.performer} - {you.audio.title}"
+                        else:
+                            title = you.audio.title
                         file_id = you.audio.file_id
                         unique = f"{nyav}_{m.message_id}_audio"                    
                     elif filter == "video":
