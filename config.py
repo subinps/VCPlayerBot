@@ -324,10 +324,10 @@ Command: **/seek**
 __You can pass number of seconds to be skipped. Example: /seek 10 to skip 10 sec. /seek -10 to rewind 10 sec.__
 
 9. Mute the player.
-Command: **/mute**
+Command: **/vcmute**
 
 10. Unmute the player.
-Command : **/unmute**
+Command : **/vcunmute**
 
 11. Shows the playlist.
 Command: **/playlist** 
