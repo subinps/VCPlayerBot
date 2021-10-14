@@ -1850,8 +1850,8 @@ def get_image(title, pic, dur="Live"):
     newimage = "converted.jpg"
     image = Image.open(pic) 
     draw = ImageDraw.Draw(image) 
-    font = ImageFont.truetype('./utils/font.ttf', 70)
-    title = title[0:30]
+    font = ImageFont.truetype('./utils/font.ttf', 60)
+    title = title[0:45]
     MAX_W = 1920
     dur=convert(int(float(dur)))
     if dur=="0:00:00":
