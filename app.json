@@ -36,7 +36,7 @@
         "required": true
       },
       "LOG_GROUP": {
-        "description": "ID of the group to send playlist If CHAT is a Group, if channel thenleave blank",
+        "description": "ID of the group to send playlist If CHAT is a Group, if channel then leave blank",
         "required": false
       },
       "QUALITY": {
