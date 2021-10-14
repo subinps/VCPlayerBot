@@ -76,7 +76,7 @@ async def schedule_vc(bot, message):
                 return await msg.edit("The given file is invalid")
         elif message.reply_to_message and message.reply_to_message.audio:
             #if not Config.IS_VIDEO:
-                #return await message.reply("Play from audio file is available only if Video Mode if turned off.\nUse /settings to configure ypur player.")
+                #return await message.reply("Play from audio file is available only if Video Mode if turned off.\nUse /vcsettings to configure ypur player.")
             await msg.edit("⚡️ **Checking Telegram Media...**")
             type='audio'
             m_video = message.reply_to_message.audio       
@@ -273,7 +273,7 @@ async def delete_sch(bot, message):
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(buttons)
-            await m.edit("No Schedule ID  specified!! Do you want to Cancel all scheduled streams? or you can find schedul id using /slist command.", reply_markup=reply_markup)
+            await m.edit("No Schedule ID  specified!! Do you want to Cancel all scheduled streams? or you can find schedul id using /vcslist command.", reply_markup=reply_markup)
             await delete_messages([message])
             return
         data=Config.SCHEDULED_STREAM.get(job_id)
