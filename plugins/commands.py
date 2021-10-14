@@ -199,7 +199,7 @@ async def repo_(client, message):
     await message.reply("<b>The source code of this bot is public and can be found at <a href=https://github.com/subinps/VCPlayerBot>VCPlayerBot.</a>\nYou can deploy your own bot and use in your group.\n\nFeel free to star☀️ the repo if you liked it 🙃.</b>", reply_markup=InlineKeyboardMarkup(buttons), disable_web_page_preview=True)
     await delete_messages([message])
 
-@Client.on_message(filters.command(['restart', 'update', f"restart@{Config.BOT_USERNAME}", f"update@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(['vcrestart', 'vcupdate', f"vcrestart@{Config.BOT_USERNAME}", f"vcupdate@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def update_handler(client, message):
     if Config.HEROKU_APP:
         k = await message.reply("Heroku APP found, Restarting app to update.")
@@ -224,7 +224,7 @@ async def update_handler(client, message):
         pass
     await update()
 
-@Client.on_message(filters.command(['logs', f"logs@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(['vclogs', f"vclogs@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def get_logs(client, message):
     m=await message.reply("Checking logs..")
     if os.path.exists("botlog.txt"):
@@ -235,7 +235,7 @@ async def get_logs(client, message):
         k = await m.edit("No log files found.")
         await delete_messages([message, k])
 
-@Client.on_message(filters.command(['env', f"env@{Config.BOT_USERNAME}", "config", f"config@{Config.BOT_USERNAME}"]) & sudo_filter & chat_filter)
+@Client.on_message(filters.command(['vcenv', f"vcenv@{Config.BOT_USERNAME}", "vcconfig", f"vcconfig@{Config.BOT_USERNAME}"]) & sudo_filter & chat_filter)
 async def set_heroku_var(client, message):
     with suppress(MessageIdInvalid, MessageNotModified):
         m = await message.reply("Checking config vars..")
@@ -362,7 +362,3 @@ async def set_heroku_var(client, message):
                 else:
                     await db.edit_config("RESTART", msg)
             config[var] = str(value)
-
-
-
-
