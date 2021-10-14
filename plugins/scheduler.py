@@ -37,8 +37,7 @@ from utils import (
     sync_to_db,
     is_audio,
     chat_filter,
-    scheduler,
-    is_ytdl_supported
+    scheduler
 )
 
 from pyrogram.types import (
@@ -57,7 +56,7 @@ admin_filter=filters.create(is_admin)
 
 
 
-@Client.on_message(filters.command(["schedule", f"schedule@{Config.BOT_USERNAME}"]) & chat_filter & admin_filter)
+@Client.on_message(filters.command(["vcschedule", f"vcschedule@{Config.BOT_USERNAME}"]) & chat_filter & admin_filter)
 async def schedule_vc(bot, message):
     with suppress(MessageIdInvalid, MessageNotModified):
         type=""
@@ -96,15 +95,27 @@ async def schedule_vc(bot, message):
                 type="youtube"
                 yturl=query
             elif query.startswith("http"):
-                has_audio_ = await is_audio(query)
-                if not has_audio_:
-                    if is_ytdl_supported(query):
-                        type="ytdl_s"
-                        url=query
-                    else:
+                """if Config.IS_VIDEO:
+                    try:
+                        width, height = get_height_and_width(query)
+                    except:
+                        width, height = None, None
+                        LOGGER.error("Unable to get video properties within time.")
+                    if not width or \
+                        not height:
                         await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
                         await delete_messages([message, msg])
-                        return
+                        return """
+                #else:
+                try:
+                    has_audio_ = await is_audio(query)
+                except:
+                    has_audio_ = False
+                    LOGGER.error("Unable to get Audio properties within time.")
+                if not has_audio_:
+                    await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
+                    await delete_messages([message, msg])
+                    return
                 type="direct"
                 url=query
             else:
@@ -124,7 +135,7 @@ async def schedule_vc(bot, message):
                 unique = f"{nyav}_{m_video.file_size}_audio"
             else:
                 title=m_video.file_name
-                unique = f"{nyav}_{m_video.file_size}_video"
+                unique = f"{nyav}_{m_video.file_size}_audio"
             if Config.PTN:
                 ny = parse(title)
                 title_ = ny.get("title")
@@ -134,7 +145,7 @@ async def schedule_vc(bot, message):
             sid=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[sid] = data
             await sync_to_db()
-        elif type in ["youtube", "query", "ytdl_s"]:
+        elif type=="youtube" or type=="query":
             if type=="youtube":
                 await msg.edit("⚡️ **Fetching Video From YouTube...**")
                 url=yturl
@@ -152,8 +163,6 @@ async def schedule_vc(bot, message):
                     LOGGER.error(str(e), exc_info=True)
                     await delete_messages([message, msg])
                     return
-            elif type == "ytdl_s":
-                url=url
             else:
                 return
             ydl_opts = {
@@ -172,14 +181,7 @@ async def schedule_vc(bot, message):
                 LOGGER.error(str(e))
                 await delete_messages([message, msg])
                 return
-            if type == "ytdl_s":
-                title = "Music"
-                try:
-                    title=info['title']
-                except:
-                    pass
-            else:
-                title = info["title"]
+            title = info["title"]
             data={'1':title, '2':url, '3':"youtube", '4':user, '5':f"{nyav}_{user_id}"}
             sid=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[sid] = data
@@ -234,7 +236,7 @@ async def schedule_vc(bot, message):
 
 
 
-@Client.on_message(filters.command(["slist", f"slist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["vcslist", f"vcslist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def list_schedule(bot, message):
     k=await message.reply("Checking schedules...")
     if not Config.SCHEDULE_LIST:
@@ -304,5 +306,3 @@ async def delete_all_sch(bot, message):
     reply_markup = InlineKeyboardMarkup(buttons)
     await message.reply("Do you want to cancel all the scheduled streams?ㅤㅤㅤㅤ ㅤ", reply_markup=reply_markup)
     await delete_messages([message])
-
-
