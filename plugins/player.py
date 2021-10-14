@@ -43,7 +43,8 @@ from utils import (
     start_stream, 
     stream_from_link, 
     chat_filter,
-    c_play
+    c_play,
+    is_ytdl_supported
 )
 from pyrogram.types import (
     InlineKeyboardMarkup, 
@@ -76,6 +77,7 @@ async def add_to_playlist(_, message: Message):
         type=""
         yturl=""
         ysearch=""
+        url=""
         if message.command[0] == "fplay":
             if not (message.from_user is None and message.sender_chat or message.from_user.id in admins):
                 k=await message.reply("This command is only for admins.")
@@ -119,20 +121,25 @@ async def add_to_playlist(_, message: Message):
                 except:
                     has_audio_ = False
                     LOGGER.error("Unable to get Audio properties within time.")
-                if not has_audio_:
-                    await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
-                    await delete_messages([message, msg])
-                    return
-                try:
-                    dur=await get_duration(query)
-                except:
-                    dur=0
-                if dur == 0:
-                    await msg.edit("This is a live stream, Use /stream command.")
-                    await delete_messages([message, msg])
-                    return 
-                type="direct"
-                url=query
+                if has_audio_:
+                    try:
+                        dur=await get_duration(query)
+                    except:
+                        dur=0
+                    if dur == 0:
+                        await msg.edit("This is a live stream, Use /stream command.")
+                        await delete_messages([message, msg])
+                        return 
+                    type="direct"
+                    url=query
+                else:
+                    if is_ytdl_supported(query):
+                        type="ytdl_s"
+                        url=query
+                    else:
+                        await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
+                        await delete_messages([message, msg])
+                        return
             else:
                 type="query"
                 ysearch=query
@@ -165,7 +172,7 @@ async def add_to_playlist(_, message: Message):
                 Config.playlist.append(data)
             await add_to_db_playlist(data)        
             await msg.edit("Media added to playlist")
-        elif type=="youtube" or type=="query":
+        elif type in ["youtube", "query", "ytdl_s"]:
             if type=="youtube":
                 await msg.edit("⚡️ **Fetching Video From YouTube...**")
                 url=yturl
@@ -183,6 +190,8 @@ async def add_to_playlist(_, message: Message):
                     LOGGER.error(str(e), exc_info=True)
                     await delete_messages([message, msg])
                     return
+            elif type == "ytdl_s":
+                url=url
             else:
                 return
             ydl_opts = {
@@ -201,7 +210,18 @@ async def add_to_playlist(_, message: Message):
                 LOGGER.error(str(e))
                 await delete_messages([message, msg])
                 return
-            title = info["title"]
+            if type == "ytdl_s":
+                title = "Music"
+                try:
+                    title = info['title']
+                except:
+                    pass
+            else:
+                title = info["title"]
+                if info['duration'] is None:
+                    await msg.edit("This is a live stream, Use /stream command.")
+                    await delete_messages([message, msg])
+                    return 
             data={1:title, 2:url, 3:"youtube", 4:user, 5:f"{nyav}_{user_id}"}
             if message.command[0] == "fplay":
                 pla = [data] + Config.playlist
@@ -352,7 +372,6 @@ async def channel_play_list(client, m: Message):
         else:
             await k.edit("You didn't gave me any channel. Give me a channel id or username from which i should play files . \nFor private channels it should start with -100 and for public channels it should start with @\nExamples - `/cplay @VCPlayerFiles or /cplay -100125369865\n\nFor private channel, both bot and the USER account should be members of channel.")
             await delete_messages([m, k])
-
 
 
 
