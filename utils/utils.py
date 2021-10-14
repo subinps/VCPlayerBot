@@ -1853,7 +1853,7 @@ def get_image(title, pic, dur="Live"):
     dur=convert(int(float(dur)))
     if dur=="0:00:00":
         dur = "Live Stream"
-    para=[f'Playing : {title}', f'Duration: {dur}']
+    para=[f'Playing: {title}', f'Duration: {dur}']
     current_h, pad = 450, 20
     for line in para:
         w, h = draw.textsize(line, font=font)

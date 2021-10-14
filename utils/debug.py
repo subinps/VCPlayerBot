@@ -47,7 +47,7 @@ debug = Client(
 @debug.on_message(filters.command(['env', f"env@{Config.BOT_USERNAME}", "config", f"config@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def set_heroku_var(client, message):
     if message.from_user.id not in Config.SUDO:
-        return await message.reply(f"/emv command can only be used by creator of the bot, ({str(Config.SUDO)})")
+        return await message.reply(f"/env command can only be used by creator of the bot, ({str(Config.SUDO)})")
     with suppress(MessageIdInvalid, MessageNotModified):
         m = await message.reply("Checking config vars..")
         if " " in message.text:
