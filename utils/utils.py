@@ -1250,6 +1250,11 @@ async def c_play(channel):
                     elif filter == "video":
                         file_id = you.video.file_id
                         title = you.video.file_name
+                        if Config.PTN:
+                            ny = parse(title)
+                            title_ = ny.get("title")
+                            if title_:
+                                title = title_
                         unique = f"{nyav}_{m.message_id}_video"
                     elif filter == "document":
                         if not "video" in you.document.mime_type:
@@ -1258,11 +1263,11 @@ async def c_play(channel):
                         file_id=you.document.file_id
                         title = you.document.file_name
                         unique = f"{nyav}_{m.message_id}_document"
-                    if Config.PTN:
-                        ny = parse(title)
-                        title_ = ny.get("title")
-                        if title_:
-                            title = title_
+                        if Config.PTN:
+                            ny = parse(title)
+                            title_ = ny.get("title")
+                            if title_:
+                                title = title_
                     data={1:title, 2:file_id, 3:"telegram", 4:f"[{chat.title}]({you.link})", 5:unique}
                     Config.playlist.append(data)
                     await add_to_db_playlist(data)
