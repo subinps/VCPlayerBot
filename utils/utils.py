@@ -1241,12 +1241,20 @@ async def c_play(channel):
                     now = datetime.now()
                     nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
                     if filter == "audio":
-                        title=you.audio.title
+                        if you.audio.performer is not None:
+                            title = f"{you.audio.performer} - {you.audio.title}"
+                        else:
+                            title = you.audio.title
                         file_id = you.audio.file_id
                         unique = f"{nyav}_{m.message_id}_audio"                    
                     elif filter == "video":
                         file_id = you.video.file_id
                         title = you.video.file_name
+                        if Config.PTN:
+                            ny = parse(title)
+                            title_ = ny.get("title")
+                            if title_:
+                                title = title_
                         unique = f"{nyav}_{m.message_id}_video"
                     elif filter == "document":
                         if not "video" in you.document.mime_type:
@@ -1255,11 +1263,11 @@ async def c_play(channel):
                         file_id=you.document.file_id
                         title = you.document.file_name
                         unique = f"{nyav}_{m.message_id}_document"
-                    if Config.PTN:
-                        ny = parse(title)
-                        title_ = ny.get("title")
-                        if title_:
-                            title = title_
+                        if Config.PTN:
+                            ny = parse(title)
+                            title_ = ny.get("title")
+                            if title_:
+                                title = title_
                     data={1:title, 2:file_id, 3:"telegram", 4:f"[{chat.title}]({you.link})", 5:unique}
                     Config.playlist.append(data)
                     await add_to_db_playlist(data)
@@ -1847,8 +1855,8 @@ def get_image(title, pic, dur="Live"):
     newimage = "converted.jpg"
     image = Image.open(pic) 
     draw = ImageDraw.Draw(image) 
-    font = ImageFont.truetype('./utils/font.ttf', 70)
-    title = title[0:30]
+    font = ImageFont.truetype('./utils/font.ttf', 60)
+    title = title[0:45]
     MAX_W = 1790
     dur=convert(int(float(dur)))
     if dur=="0:00:00":
