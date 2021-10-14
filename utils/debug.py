@@ -47,17 +47,17 @@ debug = Client(
 @debug.on_message(filters.command(['vcenv', f"vcenv@{Config.BOT_USERNAME}", "vcconfig", f"vcconfig@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def set_heroku_var(client, message):
     if message.from_user.id not in Config.SUDO:
-        return await message.reply(f"/emv command can only be used by creator of the bot, ({str(Config.SUDO)})")
+        return await message.reply(f"/vcenv command can only be used by creator of the bot, ({str(Config.SUDO)})")
     with suppress(MessageIdInvalid, MessageNotModified):
         m = await message.reply("Checking config vars..")
         if " " in message.text:
             cmd, env = message.text.split(" ", 1)
             if  not "=" in env:
-                await m.edit("You should specify the value for env.\nExample: /env CHAT=-100213658211")
+                await m.edit("You should specify the value for env.\nExample: /vcenv CHAT=-100213658211")
                 return
             var, value = env.split("=", 1)
         else:
-            await m.edit("You haven't provided any value for env, you should follow the correct format.\nExample: <code>/env CHAT=-1020202020202</code> to change or set CHAT var.\n<code>/env REPLY_MESSAGE= <code>To delete REPLY_MESSAGE.")
+            await m.edit("You haven't provided any value for env, you should follow the correct format.\nExample: <code>/vcenv CHAT=-1020202020202</code> to change or set CHAT var.\n<code>/vcenv REPLY_MESSAGE= <code>To delete REPLY_MESSAGE.")
             return
 
         if Config.DATABASE_URI and var in ["STARTUP_STREAM", "CHAT", "LOG_GROUP", "REPLY_MESSAGE", "DELAY", "RECORDING_DUMP"]:      
@@ -198,7 +198,7 @@ async def get_logs(client, message):
 
 @debug.on_message(filters.text & filters.private)
 async def reply_else(bot, message):
-    await message.reply(f"Development mode is activated.\nThis occures when there are some errors in startup of the bot.\nOnly Configuration commands works in development mode.\nAvailabe commands are /env, /skip, /clearplaylist and /restart and /logs\n\n**The cause for activation of development mode was**\n\n`{str(Config.STARTUP_ERROR)}`")
+    await message.reply(f"Development mode is activated.\nThis occures when there are some errors in startup of the bot.\nOnly Configuration commands works in development mode.\nAvailabe commands are /vcenv, /vcskip, /vcclearplaylist, /vcrestart and /vclogs\n\n**The cause for activation of development mode was**\n\n`{str(Config.STARTUP_ERROR)}`")
 
 def stop_and_restart():
     os.system("git pull")
