@@ -54,7 +54,8 @@ class Config:
     #heroku
     API_KEY=os.environ.get("HEROKU_API_KEY", None)
     APP_NAME=os.environ.get("HEROKU_APP_NAME", None)
-    
+
+
     #Optional Configuration
     SHUFFLE=is_enabled(os.environ.get("SHUFFLE", 'True'))
     ADMIN_ONLY=is_enabled(os.environ.get("ADMIN_ONLY", "False"))
@@ -92,6 +93,10 @@ class Config:
 
     SCHEDULE_LIST=[]
     playlist=[]
+    CONFIG_LIST = ["ADMINS", "IS_VIDEO", "IS_LOOP", "REPLY_PM", "ADMIN_ONLY", "SHUFFLE", "EDIT_TITLE", "CHAT", 
+    "SUDO", "REPLY_MESSAGE", "STREAM_URL", "DELAY", "LOG_GROUP", "SCHEDULED_STREAM", "SCHEDULE_LIST", 
+    "IS_VIDEO_RECORD", "IS_RECORDING", "WAS_RECORDING", "RECORDING_TITLE", "PORTRAIT", "RECORDING_DUMP", "HAS_SCHEDULE", 
+    "CUSTOM_QUALITY"]
 
     STARTUP_ERROR=None
 
@@ -133,7 +138,7 @@ class Config:
         REPLY_PM=True
         LOGGER.info("Reply Message Found, Enabled PM MSG")
     else:
-        REPLY_MESSAGE=None
+        REPLY_MESSAGE=False
         REPLY_PM=False
 
     if E_BITRATE:
