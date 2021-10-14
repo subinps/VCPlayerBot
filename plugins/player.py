@@ -127,7 +127,7 @@ async def add_to_playlist(_, message: Message):
                     except:
                         dur=0
                     if dur == 0:
-                        await msg.edit("This is a live stream, Use /stream command.")
+                        await msg.edit("This is a live stream, Use /vcstream command.")
                         await delete_messages([message, msg])
                         return 
                     type="direct"
