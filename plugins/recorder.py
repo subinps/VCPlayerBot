@@ -35,12 +35,12 @@ from pyrogram.types import (
 admin_filter=filters.create(is_admin) 
 
 
-@Client.on_message(filters.command(["record", f"record@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["vcrecord", f"vcrecord@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def record_vc(bot, message):
     await message.reply("Configure you VCPlayer Recording settings from hereㅤㅤ ㅤ", reply_markup=(await recorder_settings()))
     await delete_messages([message])
 
-@Client.on_message(filters.command(["rtitle", f"rtitle@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["vcrtitle", f"vcrtitle@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def recording_title(bot, message):
     m=await message.reply("Checking..")
     if " " in message.text:
