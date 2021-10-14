@@ -440,10 +440,10 @@ async def stream(client, m: Message):
         
 
 
-admincmds=["vcyplay", "vcleave", "vcpause", "vcresume", "vcskip", "vcrestart", "vcvolume", "vcshuffle", "vcclearplaylist", "vcexport", "vcimport", "vcupdate", 'vcreplay', 'vclogs', 'vcstream', 'vcfplay', 'vcschedule', 'vcrecord', 'vcslist', 'cancel', 'cancelall', 'vcpromote', 'vcdemote', 'vcrefresh', 'vcrtitle', 'vcseek', 'vcmute', 'vcunmute',
+admincmds=["vcyplay", "vcleave", "vcpause", "vcresume", "vcskip", "vcrestart", "vcvolume", "vcshuffle", "vcclearplaylist", "vcexport", "vcimport", "vcupdate", 'vcreplay', 'vclogs', 'vcstream', 'vcfplay', 'vcschedule', 'vcrecord', 'vcslist', 'vccancel', 'vccancelall', 'vcpromote', 'vcdemote', 'vcrefresh', 'vcrtitle', 'vcseek', 'vcmute', 'vcunmute',
 f'vcstream@{Config.BOT_USERNAME}', f'vclogs@{Config.BOT_USERNAME}', f"vcreplay@{Config.BOT_USERNAME}", f"vcyplay@{Config.BOT_USERNAME}", f"vcleave@{Config.BOT_USERNAME}", f"vcpause@{Config.BOT_USERNAME}", f"vcresume@{Config.BOT_USERNAME}", f"vcskip@{Config.BOT_USERNAME}", 
 f"vcrestart@{Config.BOT_USERNAME}", f"vcvolume@{Config.BOT_USERNAME}", f"vcshuffle@{Config.BOT_USERNAME}", f"vcclearplaylist@{Config.BOT_USERNAME}", f"vcexport@{Config.BOT_USERNAME}", f"vcimport@{Config.BOT_USERNAME}", f"vcupdate@{Config.BOT_USERNAME}",
-f'vcplay@{Config.BOT_USERNAME}', f'vcschedule@{Config.BOT_USERNAME}', f'vcrecord@{Config.BOT_USERNAME}', f'vcslist@{Config.BOT_USERNAME}', f'cancel@{Config.BOT_USERNAME}', f'cancelall@{Config.BOT_USERNAME}', f'vcpromote@{Config.BOT_USERNAME}', 
+f'vcplay@{Config.BOT_USERNAME}', f'vcschedule@{Config.BOT_USERNAME}', f'vcrecord@{Config.BOT_USERNAME}', f'vcslist@{Config.BOT_USERNAME}', f'vccancel@{Config.BOT_USERNAME}', f'vccancelall@{Config.BOT_USERNAME}', f'vcpromote@{Config.BOT_USERNAME}', 
 f'vcdemote@{Config.BOT_USERNAME}', f'vcrefresh@{Config.BOT_USERNAME}', f'vcrtitle@{Config.BOT_USERNAME}', f'vcseek@{Config.BOT_USERNAME}', f'vcmute@{Config.BOT_USERNAME}', f'vcunmute@{Config.BOT_USERNAME}'
 ]
 
