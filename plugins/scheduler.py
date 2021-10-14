@@ -57,7 +57,7 @@ admin_filter=filters.create(is_admin)
 
 
 
-@Client.on_message(filters.command(["vcschedule", f"vcschedule@{Config.BOT_USERNAME}"]) & chat_filter & admin_filter)
+@Client.on_message(filters.command(["schedule", f"schedule@{Config.BOT_USERNAME}"]) & chat_filter & admin_filter)
 async def schedule_vc(bot, message):
     with suppress(MessageIdInvalid, MessageNotModified):
         type=""
@@ -76,7 +76,7 @@ async def schedule_vc(bot, message):
                 return await msg.edit("The given file is invalid")
         elif message.reply_to_message and message.reply_to_message.audio:
             #if not Config.IS_VIDEO:
-                #return await message.reply("Play from audio file is available only if Video Mode if turned off.\nUse /vcsettings to configure ypur player.")
+                #return await message.reply("Play from audio file is available only if Video Mode if turned off.\nUse /settings to configure ypur player.")
             await msg.edit("⚡️ **Checking Telegram Media...**")
             type='audio'
             m_video = message.reply_to_message.audio       
@@ -246,7 +246,7 @@ async def schedule_vc(bot, message):
 
 
 
-@Client.on_message(filters.command(["vcslist", f"vcslist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["slist", f"slist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def list_schedule(bot, message):
     k=await message.reply("Checking schedules...")
     if not Config.SCHEDULE_LIST:
@@ -271,7 +271,7 @@ async def list_schedule(bot, message):
     await delete_messages([message])
 
 
-@Client.on_message(filters.command(["vccancel", f"vccancel@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["cancel", f"cancel@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def delete_sch(bot, message):
     with suppress(MessageIdInvalid, MessageNotModified):
         m = await message.reply("Finding the scheduled stream..")
@@ -285,7 +285,7 @@ async def delete_sch(bot, message):
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(buttons)
-            await m.edit("No Schedule ID  specified!! Do you want to Cancel all scheduled streams? or you can find schedul id using /vcslist command.", reply_markup=reply_markup)
+            await m.edit("No Schedule ID  specified!! Do you want to Cancel all scheduled streams? or you can find schedul id using /slist command.", reply_markup=reply_markup)
             await delete_messages([message])
             return
         data=Config.SCHEDULED_STREAM.get(job_id)
@@ -305,7 +305,7 @@ async def delete_sch(bot, message):
         await m.edit(f"Succesfully deleted {data['1']} from scheduled list.")
         await delete_messages([message, m])
         
-@Client.on_message(filters.command(["vccancelall", f"vccancelall@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["cancelall", f"cancelall@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def delete_all_sch(bot, message):
     buttons = [
         [
@@ -316,3 +316,5 @@ async def delete_all_sch(bot, message):
     reply_markup = InlineKeyboardMarkup(buttons)
     await message.reply("Do you want to cancel all the scheduled streams?ㅤㅤㅤㅤ ㅤ", reply_markup=reply_markup)
     await delete_messages([message])
+
+

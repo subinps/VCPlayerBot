@@ -198,32 +198,32 @@ class Config:
 __You can play using any of these options__
 
 1. Play a video from a YouTube link.
-Command: **/vcplay**
+Command: **/play**
 __You can use this as a reply to a YouTube link or pass link along command. or as a reply to message to search that in YouTube.__
 
 2. Play from a telegram file.
-Command: **/vcplay**
+Command: **/play**
 __Reply to a supported media(video and documents or audio file ).__
-Note: __For both the cases /vcfplay also can be used by admins to play the song immediately without waiting for queue to end.__
+Note: __For both the cases /fplay also can be used by admins to play the song immediately without waiting for queue to end.__
 
 3. Play from a YouTube playlist
-Command: **/vcyplay**
+Command: **/yplay**
 __First get a playlist file from @GetPlaylistBot or @DumpPlaylist and reply to playlist file.__
 
 4. Live Stream
-Command: **/vcstream**
+Command: **/stream**
 __Pass a live stream URL or any direct URL to play it as stream.__
 
 5. Import an old playlist.
-Command: **/vcimport**
+Command: **/import**
 __Reply to a previously exported playlist file. __
 
 6. Channel Play
-Command: **/vccplay**
-__Use `/vccplay channel username or channel id` to play all the files from the given channel.
+Command: **/cplay**
+__Use `/cplay channel username or channel id` to play all the files from the given channel.
 By default both video files and documents will be played . You can add or remove the file type using `FILTERS` var. 
-For example , to stream audio, video and document from the channel use `/vcenv FILTERS video document audio` . If you need only audio , you can use `/vcenv FILTERS video audio` and so on.
-To set up the files from a channel as STARTUP_STREAM, so that the files will be automatically added to playlist on startup of bot. use `/vcenv STARTUP_STREAM channel username or channel id`
+For example , to stream audio, video and document from the channel use `/env FILTERS video document audio` . If you need only audio , you can use `/env FILTERS video audio` and so on.
+To set up the files from a channel as STARTUP_STREAM, so that the files will be automatically added to playlist on startup of bot. use `/env STARTUP_STREAM channel username or channel id`
 
 Note that for public channels you should use username of channels along with '@' and for private channels you should use channel id.
 For private channels , make sure both the bot and USER account is a member of channel.__
@@ -231,7 +231,7 @@ For private channels , make sure both the bot and USER account is a member of ch
     SETTINGS_HELP="""
 **You can easily customize you player as per you needs. The following configurations are available:**
 
-🔹Command: **/vcsettings**
+🔹Command: **/settings**
 
 🔹AVAILABLE CONFIGURATIONS:
 
@@ -246,7 +246,7 @@ if disabled, video files will be played as audio.__
 
 **Edit Title** - __Enabling this will edit your VideoChat title to current playing songs name.__
 
-**Shuffle Mode** - __Enabling this will shuffle the playlist whenever you import a playlist or using /vcyplay __
+**Shuffle Mode** - __Enabling this will shuffle the playlist whenever you import a playlist or using /yplay __
 
 **Auto Reply** - __Choose whether to reply the PM messages of playing user account.
 You can  set up a custom reply message using `REPLY_MESSAGE` confug.__
@@ -257,19 +257,19 @@ __VCPlayer allows you to schedule a stream.
 This means you can schedule a stream for a future date and on the scheduled date, stream will be played automatically.
 At present you can schedule a stream for even one year!!. Make sure you have set up a databse, else you will loose your schedules whenever the player restarts. __
 
-Command: **/vcschedule**
+Command: **/schedule**
 
 __Reply to a file or a youtube video or even a text message with schedule command.
 The replied media or youtube video will be scheduled and will be played on the scheduled date.
 The scheduling time is by default in IST and you can change the timezone using `TIME_ZONE` config.__
 
-Command: **/vcslist**
+Command: **/slist**
 __View your current scheduled streams.__
 
-Command: **/vccancel**
-__Cancel a schedule by its schedule id, You can get the schedule id using /vcslist command__
+Command: **/cancel**
+__Cancel a schedule by its schedule id, You can get the schedule id using /slist command__
 
-Command: **/vccancelall**
+Command: **/cancelall**
 __Cancel all the scheduled streams__
 """
     RECORDER_HELP="""
@@ -277,15 +277,15 @@ __With VCPlayer you can easily record all your video chats.
 By default telegram allows you to record for a maximum duration of 4 hours. 
 An attempt to overcome this limit has been made by automatically restarting the recording after  4 hours__
 
-Command: **/vcrecord**
+Command: **/record**
 
 AVAILABLE CONFIGURATIONS:
 1. Record Video: __If enabled both the video and audio of the stream will be recorded, otherwise only audio will be recorded.__
 
 2. Video dimension: __Choose between portrait and landscape dimensions for your recording__
 
-3. Custom Recording Title: __Set up a custom recording title for your recordings. Use a command /vcrtitle to configure this.
-To turn off the custom title, use `/vcrtitle False `__
+3. Custom Recording Title: __Set up a custom recording title for your recordings. Use a command /rtitle to configure this.
+To turn off the custom title, use `/rtitle False `__
 
 4. Recording Dumb: __You can set up forwarding all your recordings to a channel, this will be useful since otherwise recordings are sent to saved messages of streaming account.
 Setup using `RECORDING_DUMP` config.__
@@ -297,31 +297,31 @@ Setup using `RECORDING_DUMP` config.__
     CONTROL_HELP="""
 __VCPlayer allows you to control your streams easily__
 1. Skip a song.
-Command: **/vcskip**
+Command: **/skip**
 __You can pass a number greater than 2 to skip the song in that position.__
 
 2. Pause the player.
-Command: **/vcpause**
+Command: **/pause**
 
 3. Resume the player.
-Command: **/vcresume**
+Command: **/resume**
 
 4. Change Volume.
-Command: **/vcvolume**
+Command: **/volume**
 __Pass the volume in between 1-200.__
 
 5. Leave the VC.
-Command: **/vcleave**
+Command: **/leave**
 
 6. Shuffle the playlist.
-Command: **/vcshuffle**
+Command: **/shuffle**
 
 7. Clear the current playlist queue.
-Command: **/vcclearplaylist**
+Command: **/clearplaylist**
 
 8. Seek the video.
-Command: **/vcseek**
-__You can pass number of seconds to be skipped. Example: /vcseek 10 to skip 10 sec. /vcseek -10 to rewind 10 sec.__
+Command: **/seek**
+__You can pass number of seconds to be skipped. Example: /seek 10 to skip 10 sec. /seek -10 to rewind 10 sec.__
 
 9. Mute the player.
 Command: **/vcmute**
@@ -330,8 +330,8 @@ Command: **/vcmute**
 Command : **/vcunmute**
 
 11. Shows the playlist.
-Command: **/vcplaylist** 
-__Use /vcplayer to show with control buttons__
+Command: **/playlist** 
+__Use /player to show with control buttons__
 """
 
     ADMIN_HELP="""
@@ -344,34 +344,34 @@ __You can promote a admin with their username or user id or by replying to that 
 Command: **/vcdemote**
 __Remove an admin from admin list__
 
-Command: **/vcrefresh**
+Command: **/refresh**
 __Refresh the admin list of chat__
 """
 
     MISC_HELP="""
-Command: **/vcexport**
+Command: **/export**
 __VCPlayer allows you to export your current playlist for future use.__
-__A json file will be sent to you and the same can be used along /vcimport command.__
+__A json file will be sent to you and the same can be used along /import command.__
 
-Command : **/vclogs**
-__If your player went something gone wrong, you can easily check the logs using /vclogs__
+Command : **/logs**
+__If your player went something gone wrong, you can easily check the logs using /logs__
  
-Command : **/vcenv**
-__Setup your config vars with /vcenv command.__
-__Example: To set up a__ `REPLY_MESSAGE` __use__ `/vcenv REPLY_MESSAGE=Hey, Check out @subin_works rather than spamming in my PM`__
-__You can delete a config var by ommiting a value for that, Example:__ `/vcenv LOG_GROUP=` __this will delete the existing LOG_GROUP config.
+Command : **/env**
+__Setup your config vars with /env command.__
+__Example: To set up a__ `REPLY_MESSAGE` __use__ `/env REPLY_MESSAGE=Hey, Check out @subin_works rather than spamming in my PM`__
+__You can delete a config var by ommiting a value for that, Example:__ `/env LOG_GROUP=` __this will delete the existing LOG_GROUP config.
 
-Command: **/vcconfig**
-__Same as using /vcenv**
+Command: **/config**
+__Same as using /env**
 
-Command: **/vcupdate**
+Command: **/update**
 __Updates youe bot with latest changes__
 
 Tip: __You can easily change the CHAT config by adding the user account and bot account to any other group and any command in new group__
 
 """
     ENV_HELP="""
-**These are the configurable vars available and you can set each one of them using /vcenv command**
+**These are the configurable vars available and you can set each one of them using /env command**
 
 
 **Mandatory Vars**
@@ -408,15 +408,15 @@ For more info on channel play , read help from player section.__
 
 2. `ADMINS` : __ID of users who can use admin commands.__
 
-3. `REPLY_MESSAGE` : __A reply to those who message the USER account in PM. Leave it blank if you do not need this feature. (Configurable through buttons if mongodb added. Use /vcsettings)__
+3. `REPLY_MESSAGE` : __A reply to those who message the USER account in PM. Leave it blank if you do not need this feature. (Configurable through buttons if mongodb added. Use /settings)__
 
-4. `ADMIN_ONLY` : __Pass `True` If you want to make /vcplay command only for admins of `CHAT`. By default /vcplay is available for all.(Configurable through buttons if mongodb added. Use /vcsettings)__
+4. `ADMIN_ONLY` : __Pass `True` If you want to make /play command only for admins of `CHAT`. By default /play is available for all.(Configurable through buttons if mongodb added. Use /settings)__
 
 5. `DATABASE_NAME`: __Database name for your mongodb database.mongodb__
 
 6. `SHUFFLE` : __Make it `False` if you dont want to shuffle playlists. (Configurable through buttons)__
 
-7. `EDIT_TITLE` : __Make it `False` if you do not want the bot to edit video chat title according to playing song. (Configurable through buttons if mongodb added. Use /vcsettings)__
+7. `EDIT_TITLE` : __Make it `False` if you do not want the bot to edit video chat title according to playing song. (Configurable through buttons if mongodb added. Use /settings)__
 
 8. `RECORDING_DUMP` : __A Channel ID with the USER account as admin, to dump video chat recordings.__
 
@@ -424,13 +424,13 @@ For more info on channel play , read help from player section.__
 
 10. `TIME_ZONE` : __Time Zone of your country, by default IST__
 
-11. `IS_VIDEO_RECORD` : __Make it `False` if you do not want to record video, and only audio will be recorded.(Configurable through buttons if mongodb added. Use /vcrecord)__
+11. `IS_VIDEO_RECORD` : __Make it `False` if you do not want to record video, and only audio will be recorded.(Configurable through buttons if mongodb added. Use /record)__
 
-12. `IS_LOOP` ; __Make it `False` if you do not want 24 / 7 Video Chat. (Configurable through buttons if mongodb added.Use /vcsettings)__
+12. `IS_LOOP` ; __Make it `False` if you do not want 24 / 7 Video Chat. (Configurable through buttons if mongodb added.Use /settings)__
 
-13. `IS_VIDEO` : __Make it `False` if you want to use the player as a musicplayer without video. (Configurable through buttons if mongodb added. Use /vcsettings)__
+13. `IS_VIDEO` : __Make it `False` if you want to use the player as a musicplayer without video. (Configurable through buttons if mongodb added. Use /settings)__
 
-14. `PORTRAIT`: __Make it `True` if you want the video recording in portrait mode. (Configurable through buttons if mongodb added. Use /vcrecord)__
+14. `PORTRAIT`: __Make it `True` if you want the video recording in portrait mode. (Configurable through buttons if mongodb added. Use /record)__
 
 15. `DELAY` : __Choose the time limit for commands deletion. 10 sec by default.__
 

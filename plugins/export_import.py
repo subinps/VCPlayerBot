@@ -41,7 +41,7 @@ from pyrogram.errors import (
 admin_filter=filters.create(is_admin)   
 
 
-@Client.on_message(filters.command(["vcexport", f"vcexport@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["export", f"export@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def export_play_list(client, message: Message):
     if not Config.playlist:
         k=await message.reply_text("Playlist is Empty")
@@ -57,7 +57,7 @@ async def export_play_list(client, message: Message):
         pass
     await delete_messages([message])
 
-@Client.on_message(filters.command(["vcimport", f"vcimport@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["import", f"import@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def import_playlist(client, m: Message):
     with suppress(MessageIdInvalid, MessageNotModified):
         if m.reply_to_message is not None and m.reply_to_message.document:

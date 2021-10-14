@@ -65,7 +65,7 @@ from pyrogram import (
 
 admin_filter=filters.create(is_admin) 
 
-@Client.on_message(filters.command(["vcplay", "vcfplay", f"vcplay@{Config.BOT_USERNAME}", f"vcfplay@{Config.BOT_USERNAME}"]) & chat_filter)
+@Client.on_message(filters.command(["play", "fplay", f"play@{Config.BOT_USERNAME}", f"fplay@{Config.BOT_USERNAME}"]) & chat_filter)
 async def add_to_playlist(_, message: Message):
     with suppress(MessageIdInvalid, MessageNotModified):
         admins = await get_admins(Config.CHAT)
@@ -96,7 +96,7 @@ async def add_to_playlist(_, message: Message):
                 return await msg.edit("The given file is invalid")
         elif message.reply_to_message and message.reply_to_message.audio:
             #if not Config.IS_VIDEO:
-                #return await message.reply("Play from audio file is available only if Video Mode if turned off.\nUse /vcsettings to configure ypur player.")
+                #return await message.reply("Play from audio file is available only if Video Mode if turned off.\nUse /settings to configure ypur player.")
             await msg.edit("⚡️ **Checking Telegram Media...**")
             type='audio'
             m_video = message.reply_to_message.audio       
@@ -127,7 +127,7 @@ async def add_to_playlist(_, message: Message):
                     except:
                         dur=0
                     if dur == 0:
-                        await msg.edit("This is a live stream, Use /vcstream command.")
+                        await msg.edit("This is a live stream, Use /stream command.")
                         await delete_messages([message, msg])
                         return 
                     type="direct"
@@ -231,7 +231,7 @@ async def add_to_playlist(_, message: Message):
             else:
                 title = info["title"]
                 if info['duration'] is None:
-                    await msg.edit("This is a live stream, Use /vcstream command.")
+                    await msg.edit("This is a live stream, Use /stream command.")
                     await delete_messages([message, msg])
                     return 
             data={1:title, 2:url, 3:"youtube", 4:user, 5:f"{nyav}_{user_id}"}
@@ -279,7 +279,7 @@ async def add_to_playlist(_, message: Message):
             await download(track)
 
 
-@Client.on_message(filters.command(["vcleave", f"vcleave@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["leave", f"leave@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def leave_voice_chat(_, m: Message):
     if not Config.CALL_STATUS:        
         k=await m.reply("Not joined any voicechat.")
@@ -291,7 +291,7 @@ async def leave_voice_chat(_, m: Message):
 
 
 
-@Client.on_message(filters.command(["vcshuffle", f"vcshuffle@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["shuffle", f"shuffle@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def shuffle_play_list(client, m: Message):
     if not Config.CALL_STATUS:
         k = await m.reply("Not joined any voicechat.")
@@ -307,7 +307,7 @@ async def shuffle_play_list(client, m: Message):
             await delete_messages([m, k])
 
 
-@Client.on_message(filters.command(["vcclearplaylist", f"vcclearplaylist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["clearplaylist", f"clearplaylist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def clear_play_list(client, m: Message):
     if not Config.playlist:
         k = await m.reply("Playlist is empty.")  
@@ -325,7 +325,7 @@ async def clear_play_list(client, m: Message):
 
 
 
-@Client.on_message(filters.command(["vccplay", f"vccplay@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["cplay", f"cplay@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def channel_play_list(client, m: Message):
     with suppress(MessageIdInvalid, MessageNotModified):
         k=await m.reply("Setting up for channel play..")
@@ -379,15 +379,15 @@ async def channel_play_list(client, m: Message):
                     await k.edit(f"Succesfully Added {msg} files from {chat.title} to playlist")
                     await delete_messages([m, k])
             else:
-                await k.edit("The given channel is invalid. For private channels it should start with -100 and for public channels it should start with @\nExamples - `/vccplay @VCPlayerFiles or /vccplay -100125369865\n\nFor private channel, both bot and the USER account should be members of channel.")
+                await k.edit("The given channel is invalid. For private channels it should start with -100 and for public channels it should start with @\nExamples - `/cplay @VCPlayerFiles or /cplay -100125369865\n\nFor private channel, both bot and the USER account should be members of channel.")
                 await delete_messages([m, k])
         else:
-            await k.edit("You didn't gave me any channel. Give me a channel id or username from which i should play files . \nFor private channels it should start with -100 and for public channels it should start with @\nExamples - `/vccplay @VCPlayerFiles or /vccplay -100125369865\n\nFor private channel, both bot and the USER account should be members of channel.")
+            await k.edit("You didn't gave me any channel. Give me a channel id or username from which i should play files . \nFor private channels it should start with -100 and for public channels it should start with @\nExamples - `/cplay @VCPlayerFiles or /cplay -100125369865\n\nFor private channel, both bot and the USER account should be members of channel.")
             await delete_messages([m, k])
 
 
 
-@Client.on_message(filters.command(["vcyplay", f"vcyplay@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["yplay", f"yplay@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def yt_play_list(client, m: Message):
     with suppress(MessageIdInvalid, MessageNotModified):
         if m.reply_to_message is not None and m.reply_to_message.document:
@@ -419,7 +419,7 @@ async def yt_play_list(client, m: Message):
             await delete_messages([m, k])
 
 
-@Client.on_message(filters.command(["vcstream", f"vcstream@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["stream", f"stream@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def stream(client, m: Message):
     with suppress(MessageIdInvalid, MessageNotModified):
         msg=await m.reply("Checking the recived input.")
@@ -456,7 +456,7 @@ async def stream(client, m: Message):
         except:
             dur=0
         if dur != 0:
-            k = await msg.edit("This is not a live stream, Use /vcplay command.")
+            k = await msg.edit("This is not a live stream, Use /play command.")
             await delete_messages([m, k])
             return
         k, msg_=await stream_from_link(stream_link)
@@ -471,7 +471,6 @@ async def stream(client, m: Message):
         
 
 
-
 admincmds=["yplay", "leave", "pause", "resume", "skip", "restart", "volume", "shuffle", "clearplaylist", "export", "import", "update", 'replay', 'logs', 'stream', 'fplay', 'schedule', 'record', 'slist', 'cancel', 'cancelall', 'vcpromote', 'vcdemote', 'refresh', 'rtitle', 'seek', 'vcmute', 'unmute',
 f'stream@{Config.BOT_USERNAME}', f'logs@{Config.BOT_USERNAME}', f"replay@{Config.BOT_USERNAME}", f"yplay@{Config.BOT_USERNAME}", f"leave@{Config.BOT_USERNAME}", f"pause@{Config.BOT_USERNAME}", f"resume@{Config.BOT_USERNAME}", f"skip@{Config.BOT_USERNAME}", 
 f"restart@{Config.BOT_USERNAME}", f"volume@{Config.BOT_USERNAME}", f"shuffle@{Config.BOT_USERNAME}", f"clearplaylist@{Config.BOT_USERNAME}", f"export@{Config.BOT_USERNAME}", f"import@{Config.BOT_USERNAME}", f"update@{Config.BOT_USERNAME}",
@@ -479,7 +478,7 @@ f'play@{Config.BOT_USERNAME}', f'schedule@{Config.BOT_USERNAME}', f'record@{Conf
 f'vcdemote@{Config.BOT_USERNAME}', f'refresh@{Config.BOT_USERNAME}', f'rtitle@{Config.BOT_USERNAME}', f'seek@{Config.BOT_USERNAME}', f'mute@{Config.BOT_USERNAME}', f'vcunmute@{Config.BOT_USERNAME}'
 ]
 
-allcmd = ["vcplay", "vcplayer", f"vcplay@{Config.BOT_USERNAME}", f"vcplayer@{Config.BOT_USERNAME}"] + admincmds
+allcmd = ["play", "player", f"play@{Config.BOT_USERNAME}", f"player@{Config.BOT_USERNAME}"] + admincmds
 
 @Client.on_message(filters.command(admincmds) & ~admin_filter & chat_filter)
 async def notforu(_, m: Message):
@@ -507,3 +506,4 @@ async def not_chat(_, m: Message):
             ]
             ]
         await m.reply("<b>You can't use this bot in this group, for that you have to make your own bot from the [SOURCE CODE](https://github.com/subinps/VCPlayerBot) below.</b>", disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(buttons))
+
