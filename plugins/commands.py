@@ -242,12 +242,12 @@ async def set_heroku_var(client, message):
         if " " in message.text:
             cmd, env = message.text.split(" ", 1)
             if  not "=" in env:
-                await m.edit("You should specify the value for env.\nExample: /env CHAT=-100213658211")
+                await m.edit("You should specify the value for env.\nExample: /vcenv CHAT=-100213658211")
                 await delete_messages([message, m])
                 return
             var, value = env.split("=", 1)
         else:
-            await m.edit("You haven't provided any value for env, you should follow the correct format.\nExample: <code>/env CHAT=-1020202020202</code> to change or set CHAT var.\n<code>/env REPLY_MESSAGE= <code>To delete REPLY_MESSAGE.")
+            await m.edit("You haven't provided any value for env, you should follow the correct format.\nExample: <code>/vcenv CHAT=-1020202020202</code> to change or set CHAT var.\n<code>/vcenv REPLY_MESSAGE= <code>To delete REPLY_MESSAGE.")
             await delete_messages([message, m])
             return
 
