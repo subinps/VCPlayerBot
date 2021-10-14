@@ -153,17 +153,20 @@ async def add_to_playlist(_, message: Message):
         nyav = now.strftime("%d-%m-%Y-%H:%M:%S")
         if type in ["video", "audio"]:
             if type == "audio":
-                title=m_video.title
+                if m_video.performer is not None:
+                    title = f"{m_video.performer} - {m_video.title}"
+                else:
+                    title=m_video.title
                 unique = f"{nyav}_{m_video.file_size}_audio"
             else:
                 title=m_video.file_name
                 unique = f"{nyav}_{m_video.file_size}_video"
+                if Config.PTN:
+                    ny = parse(title)
+                    title_ = ny.get("title")
+                    if title_:
+                        title = title_
             file_id=m_video.file_id
-            if Config.PTN:
-                ny = parse(title)
-                title_ = ny.get("title")
-                if title_:
-                    title = title_
             data={1:title, 2:file_id, 3:"telegram", 4:user, 5:unique}
             if message.command[0] == "fplay":
                 pla = [data] + Config.playlist
