@@ -261,7 +261,7 @@ async def list_schedule(bot, message):
     await delete_messages([message])
 
 
-@Client.on_message(filters.command(["cancel", f"cancel@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["vccancel", f"vccancel@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def delete_sch(bot, message):
     with suppress(MessageIdInvalid, MessageNotModified):
         m = await message.reply("Finding the scheduled stream..")
@@ -295,7 +295,7 @@ async def delete_sch(bot, message):
         await m.edit(f"Succesfully deleted {data['1']} from scheduled list.")
         await delete_messages([message, m])
         
-@Client.on_message(filters.command(["cancelall", f"cancelall@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+@Client.on_message(filters.command(["vccancelall", f"vccancelall@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def delete_all_sch(bot, message):
     buttons = [
         [
