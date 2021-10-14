@@ -44,7 +44,7 @@ debug = Client(
 )
 
 
-@debug.on_message(filters.command(['env', f"env@{Config.BOT_USERNAME}", "config", f"config@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
+@debug.on_message(filters.command(['vcenv', f"vcenv@{Config.BOT_USERNAME}", "vcconfig", f"vcconfig@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def set_heroku_var(client, message):
     if message.from_user.id not in Config.SUDO:
         return await message.reply(f"/emv command can only be used by creator of the bot, ({str(Config.SUDO)})")
@@ -133,7 +133,7 @@ async def set_heroku_var(client, message):
                     await db.edit_config("RESTART", msg)
             config[var] = str(value)
 
-@debug.on_message(filters.command(["restart", f"restart@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
+@debug.on_message(filters.command(["vcrestart", f"vcrestart@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def update(bot, message):
     m=await message.reply("Restarting with new changes..")
     if Config.DATABASE_URI:
@@ -149,7 +149,7 @@ async def update(bot, message):
             target=stop_and_restart()
             ).start()
 
-@debug.on_message(filters.command(["clearplaylist", f"clearplaylist@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
+@debug.on_message(filters.command(["vcclearplaylist", f"vcclearplaylist@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def clear_play_list(client, m: Message):
     if not Config.playlist:
         k = await m.reply("Playlist is empty.")  
@@ -159,7 +159,7 @@ async def clear_play_list(client, m: Message):
     await clear_db_playlist(all=True)
 
     
-@debug.on_message(filters.command(["skip", f"skip@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
+@debug.on_message(filters.command(["vcskip", f"vcskip@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def skip_track(_, m: Message):
     msg=await m.reply('trying to skip from queue..')
     if not Config.playlist:
@@ -187,7 +187,7 @@ async def skip_track(_, m: Message):
     await msg.edit(pl, disable_web_page_preview=True)
 
 
-@debug.on_message(filters.command(['logs', f"logs@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
+@debug.on_message(filters.command(['vclogs', f"vclogs@{Config.BOT_USERNAME}"]) & filters.private & filters.user(Config.ADMINS))
 async def get_logs(client, message):
     m=await message.reply("Checking logs..")
     if os.path.exists("botlog.txt"):
@@ -351,5 +351,3 @@ async def edit_config(var, value):
     elif var == "RECORDING_DUMP":
         Config.RECORDING_DUMP = value
     await sync_to_db()
-
-    
