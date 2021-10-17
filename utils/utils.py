@@ -274,7 +274,7 @@ async def check_vc():
         if Config.HAS_SCHEDULE:
             await start_scheduled()
         return True
-    
+
 
 async def join_call(link, seek, pic, width, height):  
     if not await check_vc():
@@ -665,8 +665,15 @@ async def leave_call():
             except Exception as e:
                 LOGGER.error(f"Error in scheduling voicechat- {e}", exc_info=True)
     await sync_to_db()
-            
-                
+
+
+async def only_join_call():
+    try:
+        await group_call.join_group_call(Config.CHAT)
+    except Exception as e:
+        LOGGER.error(f"Error while joininh call {e}", exc_info=True)
+    Config.CALL_STATUS=True
+    await sync_to_db()
 
 
 async def restart():

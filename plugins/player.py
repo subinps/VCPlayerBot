@@ -37,6 +37,7 @@ from utils import (
     is_audio, 
     leave_call,
     join_call,
+    only_join_call,
     play,
     pause,
     get_playlist_str,
@@ -63,9 +64,6 @@ from pyrogram import (
     Client, 
     filters
     )
-
-
-from user import group_call
 
 
 admin_filter=filters.create(is_admin) 
@@ -287,7 +285,7 @@ async def add_to_playlist(_, message: Message):
 @Client.on_message(filters.command(["leave", f"leave@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def leave_voice_chat(_, m: Message):
     if not Config.CALL_STATUS:        
-        k=await m.reply("Not joined any voicechat.")
+        k=await m.reply("Not joined any videochat.")
         await delete_messages([m, k])
         return
     await leave_call()
@@ -298,12 +296,13 @@ async def leave_voice_chat(_, m: Message):
 @Client.on_message(filters.command(["join", f"join@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def join_voice_chat(_, m: Message):
     if Config.CALL_STATUS:        
-        k=await m.reply("Already joined a voicechat.")
+        k=await m.reply("Already joined a videochat.")
         await delete_messages([m, k])
         return
     if not Config.PAUSE:
         await pause()
-    await group_call.join_group_call(int(Config.CHAT))
+    # await group_call.join_group_call(int(Config.CHAT))
+    await only_join_call()
     k=await m.reply("Succesfully joined videochat.")
     await delete_messages([m, k])
 
