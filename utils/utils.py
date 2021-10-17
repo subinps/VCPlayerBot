@@ -668,7 +668,7 @@ async def leave_call():
 
 
 async def only_join_call():
-    link = ""
+    link = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     try:
         await group_call.join_group_call(Config.CHAT, AudioPiped(link, audio_parameters=AudioParameters(Config.BITRATE)))
     except Exception as e:
