@@ -258,14 +258,20 @@ async def add_to_playlist(_, message: Message):
             and len(Config.playlist) >= 1:
             await msg.edit("Downloading and Processing...")
             await download(Config.playlist[0], msg)
+            if Config.PAUSE:
+                await resume()
             await play()
         elif (len(Config.playlist) == 1 and Config.CALL_STATUS):
             await msg.edit("Downloading and Processing...")
             await download(Config.playlist[0], msg)  
+            if Config.PAUSE:
+                await resume()
             await play()
         elif message.command[0] == "fplay":
             await msg.edit("Downloading and Processing...")
-            await download(Config.playlist[0], msg)  
+            await download(Config.playlist[0], msg)
+            if Config.PAUSE:
+                await resume()
             await play()
         else:
             await send_playlist()  
@@ -481,6 +487,8 @@ async def stream(client, m: Message):
             return
         if Config.msg.get('player'):
             await Config.msg['player'].delete()
+        if Config.PAUSE:
+            await resume()
         Config.msg['player']=await msg.edit(f"[Streaming]({stream_link}) Started. ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ", disable_web_page_preview=True, reply_markup=await get_buttons())
         await delete_messages([m])
         
