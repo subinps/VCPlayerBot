@@ -668,8 +668,9 @@ async def leave_call():
 
 
 async def only_join_call():
+    link = "https://github.com/anars/blank-audio/blob/master/500-milliseconds-of-silence.mp3"
     try:
-        await group_call.join(Config.CHAT)
+        await group_call.join_group_call(int(Config.CHAT), AudioPiped(link, audio_parameters=AudioParameters(Config.BITRATE))
     except Exception as e:
         LOGGER.error(f"Error while joining call {e}", exc_info=True)
     Config.CALL_STATUS=True
