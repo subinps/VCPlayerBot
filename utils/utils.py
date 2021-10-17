@@ -21,6 +21,7 @@ try:
     from apscheduler.jobstores.base import ConflictingIdError
     from pyrogram.raw.functions.channels import GetFullChannel
     from pytgcalls import StreamType
+    from pytgcalls import GroupCallFactory
     import yt_dlp
     from pyrogram import filters
     from pymongo import MongoClient
@@ -669,7 +670,7 @@ async def leave_call():
 
 async def only_join_call():
     try:
-        await group_call.join(CHAT_ID)
+        await group_call.join(Config.CHAT)
     except Exception as e:
         LOGGER.error(f"Error while joining call {e}", exc_info=True)
     Config.CALL_STATUS=True
