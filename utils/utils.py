@@ -668,7 +668,7 @@ async def leave_call():
 
 
 async def only_join_call():
-    link = "https://github.com/anars/blank-audio/blob/master/500-milliseconds-of-silence.mp3"
+    link = "http://duramecho.com/Misc/SilentCd/Silence01s.mp3"
     try:
         await group_call.join_group_call(int(Config.CHAT), AudioPiped(link, audio_parameters=AudioParameters(Config.BITRATE)))
     except Exception as e:
