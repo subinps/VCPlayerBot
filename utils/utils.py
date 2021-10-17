@@ -668,8 +668,9 @@ async def leave_call():
 
 
 async def only_join_call():
+    link = ""
     try:
-        await group_call.join_group_call(Config.CHAT)
+        await group_call.join_group_call(Config.CHAT, AudioPiped(link, audio_parameters=AudioParameters(Config.BITRATE))
     except Exception as e:
         LOGGER.error(f"Error while joininh call {e}", exc_info=True)
     Config.CALL_STATUS=True
