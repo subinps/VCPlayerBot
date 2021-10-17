@@ -21,7 +21,6 @@ try:
     from apscheduler.jobstores.base import ConflictingIdError
     from pyrogram.raw.functions.channels import GetFullChannel
     from pytgcalls import StreamType
-    from pytgcalls import GroupCallFactory
     import yt_dlp
     from pyrogram import filters
     from pymongo import MongoClient
