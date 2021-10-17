@@ -36,7 +36,6 @@ from utils import (
     import_play_list,
     is_audio, 
     leave_call,
-    join_call,
     play,
     pause,
     get_playlist_str,
@@ -300,7 +299,7 @@ async def join_voice_chat(_, m: Message):
         return
     if not Config.PAUSE:
         await pause()
-    await join_call()
+    await play()
     k=await m.reply("Succesfully joined videochat.")
     await delete_messages([m, k])
 

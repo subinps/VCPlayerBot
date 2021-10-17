@@ -637,7 +637,7 @@ async def leave_call():
     try:
         await group_call.leave_group_call(Config.CHAT)
     except Exception as e:
-        LOGGER.error(f"Errors while leaving call {e}", exc_info=True)
+        LOGGER.error(f"Error while leaving call {e}", exc_info=True)
     #Config.playlist.clear()
     if Config.STREAM_LINK:
         Config.STREAM_LINK=False
@@ -664,17 +664,6 @@ async def leave_call():
                 LOGGER.error("Unable to schedule VideoChat, since date is invalid")
             except Exception as e:
                 LOGGER.error(f"Error in scheduling voicechat- {e}", exc_info=True)
-    await sync_to_db()
-            
-                
-
-
-async def join_call():
-    try:
-        await group_call.join_group_call(Config.CHAT)
-    except Exception as e:
-        LOGGER.error(f"Errors while joining call {e}", exc_info=True)
-    Config.CALL_STATUS=True
     await sync_to_db()
             
                 
