@@ -36,8 +36,8 @@ from utils import (
     import_play_list,
     is_audio, 
     leave_call,
-    join_call
-    play, 
+    join_call,
+    play,
     get_playlist_str,
     send_playlist,
     shuffle_playlist,
