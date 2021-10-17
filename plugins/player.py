@@ -65,6 +65,9 @@ from pyrogram import (
     )
 
 
+from user import group_call
+
+
 admin_filter=filters.create(is_admin) 
 
 @Client.on_message(filters.command(["play", "fplay", f"play@{Config.BOT_USERNAME}", f"fplay@{Config.BOT_USERNAME}"]) & chat_filter)
@@ -300,7 +303,7 @@ async def join_voice_chat(_, m: Message):
         return
     if not Config.PAUSE:
         await pause()
-    await join_call(link, seek, pic, width, height)
+    await group_call.join_group_call(int(Config.CHAT))
     k=await m.reply("Succesfully joined videochat.")
     await delete_messages([m, k])
 
