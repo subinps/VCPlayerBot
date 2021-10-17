@@ -36,6 +36,7 @@ from utils import (
     import_play_list,
     is_audio, 
     leave_call,
+    join_call,
     play,
     pause,
     get_playlist_str,
