@@ -668,11 +668,10 @@ async def leave_call():
 
 
 async def only_join_call():
-    link = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     try:
-        await group_call.join_group_call(Config.CHAT, AudioPiped(link, audio_parameters=AudioParameters(Config.BITRATE)))
+        await group_call.join(CHAT_ID)
     except Exception as e:
-        LOGGER.error(f"Error while joininh call {e}", exc_info=True)
+        LOGGER.error(f"Error while joining call {e}", exc_info=True)
     Config.CALL_STATUS=True
     await sync_to_db()
 
