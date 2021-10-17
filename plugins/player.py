@@ -299,10 +299,9 @@ async def join_voice_chat(_, m: Message):
         k=await m.reply("Already joined a videochat.")
         await delete_messages([m, k])
         return
+    await only_join_call()
     if not Config.PAUSE:
         await pause()
-    # await group_call.join_group_call(int(Config.CHAT))
-    await only_join_call()
     k=await m.reply("Succesfully joined videochat.")
     await delete_messages([m, k])
 
