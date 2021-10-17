@@ -300,7 +300,7 @@ async def join_voice_chat(_, m: Message):
         return
     if not Config.PAUSE:
         await pause()
-    await join_call()
+    await join_call(link, seek, pic, width, height)
     k=await m.reply("Succesfully joined videochat.")
     await delete_messages([m, k])
 
