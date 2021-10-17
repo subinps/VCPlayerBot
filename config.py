@@ -313,23 +313,26 @@ __Pass the volume in between 1-200.__
 5. Leave the VC.
 Command: **/leave**
 
-6. Shuffle the playlist.
+6. Join the VC.
+Command: **/join**
+
+7. Shuffle the playlist.
 Command: **/shuffle**
 
-7. Clear the current playlist queue.
+8. Clear the current playlist queue.
 Command: **/clearplaylist**
 
-8. Seek the video.
+9. Seek the video.
 Command: **/seek**
 __You can pass number of seconds to be skipped. Example: /seek 10 to skip 10 sec. /seek -10 to rewind 10 sec.__
 
-9. Mute the player.
+10. Mute the player.
 Command: **/vcmute**
 
-10. Unmute the player.
+11. Unmute the player.
 Command : **/vcunmute**
 
-11. Shows the playlist.
+12. Shows the playlist.
 Command: **/playlist** 
 __Use /player to show with control buttons__
 """

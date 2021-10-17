@@ -24,24 +24,25 @@ from config import Config
 from PTN import parse
 import re
 from utils import (
-    add_to_db_playlist, 
-    clear_db_playlist, 
-    delete_messages, 
-    download, 
-    get_admins, 
+    add_to_db_playlist,
+    clear_db_playlist,
+    delete_messages,
+    download,
+    get_admins,
     get_duration,
     is_admin, 
-    get_buttons, 
+    get_buttons,
     get_link, 
-    import_play_list, 
+    import_play_list,
     is_audio, 
-    leave_call, 
+    leave_call,
+    join_call
     play, 
-    get_playlist_str, 
-    send_playlist, 
-    shuffle_playlist, 
-    start_stream, 
-    stream_from_link, 
+    get_playlist_str,
+    send_playlist,
+    shuffle_playlist,
+    start_stream,
+    stream_from_link,
     chat_filter,
     c_play,
     is_ytdl_supported
@@ -290,6 +291,18 @@ async def leave_voice_chat(_, m: Message):
     await delete_messages([m, k])
 
 
+@Client.on_message(filters.command(["join", f"join@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
+async def join_voice_chat(_, m: Message):
+    if Config.CALL_STATUS:        
+        k=await m.reply("Already joined a voicechat.")
+        await delete_messages([m, k])
+        return
+    if not Config.PAUSE:
+        await pause()
+    await join_call()
+    k=await m.reply("Succesfully joined videochat.")
+    await delete_messages([m, k])
+
 
 @Client.on_message(filters.command(["shuffle", f"shuffle@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def shuffle_play_list(client, m: Message):
@@ -471,8 +484,8 @@ async def stream(client, m: Message):
         
 
 
-admincmds=["yplay", "leave", "pause", "resume", "skip", "restart", "volume", "shuffle", "clearplaylist", "export", "import", "update", 'replay', 'logs', 'stream', 'fplay', 'schedule', 'record', 'slist', 'cancel', 'cancelall', 'vcpromote', 'vcdemote', 'refresh', 'rtitle', 'seek', 'vcmute', 'unmute',
-f'stream@{Config.BOT_USERNAME}', f'logs@{Config.BOT_USERNAME}', f"replay@{Config.BOT_USERNAME}", f"yplay@{Config.BOT_USERNAME}", f"leave@{Config.BOT_USERNAME}", f"pause@{Config.BOT_USERNAME}", f"resume@{Config.BOT_USERNAME}", f"skip@{Config.BOT_USERNAME}", 
+admincmds=["yplay", "leave", "join", "pause", "resume", "skip", "restart", "volume", "shuffle", "clearplaylist", "export", "import", "update", 'replay', 'logs', 'stream', 'fplay', 'schedule', 'record', 'slist', 'cancel', 'cancelall', 'vcpromote', 'vcdemote', 'refresh', 'rtitle', 'seek', 'vcmute', 'unmute',
+f'stream@{Config.BOT_USERNAME}', f'logs@{Config.BOT_USERNAME}', f"replay@{Config.BOT_USERNAME}", f"yplay@{Config.BOT_USERNAME}", f"leave@{Config.BOT_USERNAME}", f"join@{Config.BOT_USERNAME}", f"pause@{Config.BOT_USERNAME}", f"resume@{Config.BOT_USERNAME}", f"skip@{Config.BOT_USERNAME}", 
 f"restart@{Config.BOT_USERNAME}", f"volume@{Config.BOT_USERNAME}", f"shuffle@{Config.BOT_USERNAME}", f"clearplaylist@{Config.BOT_USERNAME}", f"export@{Config.BOT_USERNAME}", f"import@{Config.BOT_USERNAME}", f"update@{Config.BOT_USERNAME}",
 f'play@{Config.BOT_USERNAME}', f'schedule@{Config.BOT_USERNAME}', f'record@{Config.BOT_USERNAME}', f'slist@{Config.BOT_USERNAME}', f'cancel@{Config.BOT_USERNAME}', f'cancelall@{Config.BOT_USERNAME}', f'vcpromote@{Config.BOT_USERNAME}', 
 f'vcdemote@{Config.BOT_USERNAME}', f'refresh@{Config.BOT_USERNAME}', f'rtitle@{Config.BOT_USERNAME}', f'seek@{Config.BOT_USERNAME}', f'mute@{Config.BOT_USERNAME}', f'vcunmute@{Config.BOT_USERNAME}'

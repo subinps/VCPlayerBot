@@ -669,6 +669,17 @@ async def leave_call():
                 
 
 
+async def join_call():
+    try:
+        await group_call.join_group_call(Config.CHAT)
+    except Exception as e:
+        LOGGER.error(f"Errors while joining call {e}", exc_info=True)
+    Config.CALL_STATUS=True
+    await sync_to_db()
+            
+                
+
+
 async def restart():
     try:
         await group_call.leave_group_call(Config.CHAT)

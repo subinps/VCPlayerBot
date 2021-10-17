@@ -31,14 +31,14 @@ from pyrogram.types import (
 from utils import (
     cancel_all_schedules,
     edit_config, 
-    is_admin, 
-    leave_call, 
+    is_admin,
+    leave_call,
     restart,
     restart_playout,
-    stop_recording, 
+    stop_recording,
     sync_to_db,
-    update, 
-    is_admin, 
+    update,
+    is_admin,
     chat_filter,
     sudo_filter,
     delete_messages,
@@ -378,7 +378,4 @@ async def set_heroku_var(client, message):
                 else:
                     await db.edit_config("RESTART", msg)
             config[var] = str(value)
-
-
-
 
