@@ -129,7 +129,7 @@ async def start(client, message):
         return
     buttons = [
         [
-            InlineKeyboardButton('⚙️ Update Channel', url='https://t.me/HasiYa_Updates'),
+            InlineKeyboardButton('🤗Owner', url='https://t.me/Hasintha-Nirmal'),
             InlineKeyboardButton('🧩 Source', url='https://github.com/Hasintha-Nirmal/VCPlayerBot')
         ],
         [
@@ -192,7 +192,7 @@ async def repo_(client, message):
             InlineKeyboardButton('⚙️ Update Channel', url='https://t.me/HasiYa_Updates'),     
         ],
         [
-            InlineKeyboardButton("🎞 How to Deploy", url='https://youtu.be/mnWgZMrNe_0'),
+            InlineKeyboardButton("💥 Owner", url='https:t.me/Hasintha-Nirmal'),
             InlineKeyboardButton('🗑 Close', callback_data='close'),
         ]
     ]
