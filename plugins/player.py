@@ -137,7 +137,7 @@ async def add_to_playlist(_, message: Message):
                         type="ytdl_s"
                         url=query
                     else:
-                        await msg.edit("This is an invalid link, provide me a direct link or a youtube link.")
+                        await msg.edit("ලින්ක් එක වැරදි බන් මට යූටියුබ් හරි ඩිරෙක්ට් ලින්ක් එකක් හරි දෙන්න")
                         await delete_messages([message, msg])
                         return
             else:
@@ -298,11 +298,11 @@ async def shuffle_play_list(client, m: Message):
 @Client.on_message(filters.command(["clearplaylist", f"clearplaylist@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def clear_play_list(client, m: Message):
     if not Config.playlist:
-        k = await m.reply("Playlist is empty.")  
+        k = await m.reply("Playlist එකේ මොකුත් නෑ බන්.")  
         await delete_messages([m, k])
         return
     Config.playlist.clear()
-    k=await m.reply_text(f"Playlist Cleared.")
+    k=await m.reply_text(f"Playlist එකේ තිබ්බු ඔක්කොම සින්දු අයින් කලා.")
     await clear_db_playlist(all=True)
     if Config.IS_LOOP \
         and not (Config.YPLAY or Config.CPLAY):
