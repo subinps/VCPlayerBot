@@ -276,7 +276,7 @@ async def check_vc():
         return True
 
 
-async def join_call(link, seek, pic, width, height, headers):
+async def join_call(link, seek, pic, width, height, headers={}):
     if not await check_vc():
         LOGGER.error("No voice call found and was unable to create a new one. Exiting...")
         return
@@ -336,7 +336,7 @@ async def start_scheduled():
             Config.HAS_SCHEDULE=False
             return await check_vc()
 
-async def join_and_play(link, seek, pic, width, height, headers):
+async def join_and_play(link, seek, pic, width, height, headers={}):
     try:
         if seek:
             start=str(seek['start'])
@@ -489,7 +489,7 @@ async def join_and_play(link, seek, pic, width, height, headers):
         return False
 
 
-async def change_file(link, seek, pic, width, height, headers):
+async def change_file(link, seek, pic, width, height, headers={}):
     try:
         if seek:
             start=str(seek['start'])
@@ -639,8 +639,8 @@ async def seek_file(seektime):
             return False, "Seeked duration exceeds maximum duration of file"
         new_play_start=int(play_start) - int(seektime)
         Config.DUR['TIME']=new_play_start
-        link, seek, pic, width, height = await chek_the_media(data.get("file"), seek={"start":trimstart, "end":trimend})
-        await join_call(link, seek, pic, width, height)
+        link, seek, pic, width, height = await chek_the_media(data.get("file"), seek={"start":trimstart, "end":trimend}, headers=data.get("headers"))
+        await join_call(link, seek, pic, width, height, headers=data.get("headers"))
         return True, None
 
 
@@ -706,14 +706,14 @@ async def restart_playout():
     LOGGER.info(f"RESTART PLAYING: {Config.playlist[0][1]}")
     data=Config.DATA.get('FILE_DATA')
     if data:
-        link, seek, pic, width, height = await chek_the_media(data['file'], title=f"{Config.playlist[0][1]}")
+        link, seek, pic, width, height = await chek_the_media(data['file'], title=f"{Config.playlist[0][1]}",headers=data["headers"])
         if not link:
             LOGGER.warning("Unsupported Link")
             return
         await sleep(1)
         if Config.STREAM_LINK:
             Config.STREAM_LINK=False
-        await join_call(link, seek, pic, width, height)
+        await join_call(link, seek, pic, width, height,headers=data["headers"])
     else:
         await play()
     if len(Config.playlist) <= 1:
@@ -771,7 +771,16 @@ async def start_stream():
         link=await get_link(Config.STREAM_URL)
     else:
         link=Config.STREAM_URL
-    link, seek, pic, width, height = await chek_the_media(link, title="Startup Stream", headers={})
+    headers = {}
+    if "|" in link:
+        link, headers = link.split("|")
+        headers = headers.split("&")
+        headers_dict = {}
+        for header in headers:
+            eq = header.find("=")
+            headers_dict[header[0:eq]]=header[eq+1:]
+        headers = headers_dict
+    link, seek, pic, width, height = await chek_the_media(link, title="Startup Stream", headers=headers)
     if not link:
         LOGGER.warning("Unsupported link")
         return False
@@ -781,10 +790,10 @@ async def start_stream():
             return
     #if Config.playlist:
         #Config.playlist.clear()
-    await join_call(link, seek, pic, width, height)
+    await join_call(link, seek, pic, width, height, headers=headers)
 
 
-async def stream_from_link(link, headers):
+async def stream_from_link(link, headers={}):
     link, seek, pic, width, height = await chek_the_media(link, headers)
     if not link:
         LOGGER.error("Unable to obtain sufficient information from the given url")
@@ -841,7 +850,7 @@ async def download(song, msg=None):
 
 
 
-async def chek_the_media(link, headers={}, seek=False, pic=False, title="Music"):
+async def chek_the_media(link, seek=False, pic=False, title="Music", headers={}):
     if not Config.IS_VIDEO:
         width, height = None, None
         is_audio_=False
@@ -902,7 +911,7 @@ async def chek_the_media(link, headers={}, seek=False, pic=False, title="Music")
         dur= await get_duration(link, headers)
     except:
         dur=0
-    Config.DATA['FILE_DATA']={"file":link, 'dur':dur}
+    Config.DATA['FILE_DATA']={"file":link, 'dur':dur, 'headers':headers}
     return link, seek, pic, width, height
 
 
@@ -1668,7 +1677,7 @@ async def check_changes():
                     await db.edit_default(var, current_value)
 
 
-async def is_audio(file, headers):
+async def is_audio(file, headers={}):
     have_audio=False
     ffprobe_cmd = ["ffprobe", "-i", file, "-v", "quiet", "-of", "json", "-show_streams"]
     for key, value in headers.items():
@@ -1691,7 +1700,7 @@ async def is_audio(file, headers):
     return have_audio
 
 
-async def get_height_and_width(file, headers):
+async def get_height_and_width(file, headers={}):
     ffprobe_cmd = ["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height", "-of", "json", file]
     for key, value in headers.items():
         ffprobe_cmd += ["-headers", f"{key}: {value}"]
@@ -1722,7 +1731,7 @@ async def get_height_and_width(file, headers):
     return width, height
 
 
-async def get_duration(file, headers):
+async def get_duration(file, headers={}):
     dur = 0
     ffprobe_cmd = ["ffprobe", "-i", file, "-v", "error", "-show_entries", "format=duration", "-of", "json", "-select_streams", "v:0"]
     for key, value in headers.items():
