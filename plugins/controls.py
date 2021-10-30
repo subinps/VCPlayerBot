@@ -45,7 +45,7 @@ admin_filter=filters.create(is_admin)
 async def player(client, message):
     if not Config.CALL_STATUS:
         await message.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤ",
+            "Oynatıcı boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın ㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
@@ -70,17 +70,17 @@ async def player(client, message):
 
 @Client.on_message(filters.command(["skip", f"skip@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def skip_track(_, m: Message):
-    msg=await m.reply('trying to skip from queue..')
+    msg=await m.reply('Diğer şarkıya atlanıyor..')
     if not Config.CALL_STATUS:
         await msg.edit(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤ",
+            "Oynatıcı boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın ㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
         await delete_messages([m])
         return
     if not Config.playlist:
-        await msg.edit("Playlist is Empty.")
+        await msg.edit("Oynatıcı listesi şuan boş.")
         await delete_messages([m, msg])
         return
     if len(m.command) == 1:
@@ -93,7 +93,7 @@ async def skip_track(_, m: Message):
             items.sort(reverse=True)
             for i in items:
                 if 2 <= i <= (len(Config.playlist) - 1):
-                    await msg.edit(f"Succesfully Removed from Playlist- {i}. **{Config.playlist[i][1]}**")
+                    await msg.edit(f"Başarıyla Listeden Kaldırıldı"- {i}. **{Config.playlist[i][1]}**")
                     await clear_db_playlist(song=Config.playlist[i])
                     Config.playlist.pop(i)
                     await delete_messages([m, msg])
@@ -116,17 +116,17 @@ async def skip_track(_, m: Message):
 async def pause_playing(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
         await delete_messages([m])
         return
     if Config.PAUSE:
-        k = await m.reply("Already Paused")
+        k = await m.reply("Zaten Durduruldu")
         await delete_messages([m, k])
         return
-    k = await m.reply("Paused Video Call")
+    k = await m.reply("Video Durduruldu")
     await pause()
     await delete_messages([m, k])
     
@@ -135,17 +135,17 @@ async def pause_playing(_, m: Message):
 async def resume_playing(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
         await delete_messages([m])
         return
     if not Config.PAUSE:
-        k = await m.reply("Nothing paused to resume")
+        k = await m.reply("Durdurulamadı")
         await delete_messages([m, k])
         return
-    k = await m.reply("Resumed Video Call")
+    k = await m.reply("Video Devam Ediyor")
     await resume()
     await delete_messages([m, k])
     
@@ -155,7 +155,7 @@ async def resume_playing(_, m: Message):
 async def set_vol(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
@@ -179,45 +179,45 @@ async def set_vol(_, m: Message):
 async def set_mute(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
         await delete_messages([m])
         return
     if Config.MUTED:
-        k = await m.reply_text("Already muted.")
+        k = await m.reply_text("Sessize Alındı.")
         await delete_messages([m, k])
         return
     k=await mute()
     if k:
-        k = await m.reply_text(f" 🔇 Succesfully Muted ")
+        k = await m.reply_text(f" 🔇 Başarıyla Sessize Alındı ")
         await delete_messages([m, k])
     else:
-        k = await m.reply_text("Already muted.")
+        k = await m.reply_text("Sessize Alındı.")
         await delete_messages([m, k])
     
 @Client.on_message(filters.command(['vcunmute', f"vcunmute@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def set_unmute(_, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
         await delete_messages([m])
         return
     if not Config.MUTED:
-        k = await m.reply("Stream already unmuted.")
+        k = await m.reply("Artık Sessizde Değil.")
         await delete_messages([m, k])
         return
     k=await unmute()
     if k:
-        k = await m.reply_text(f"🔊 Succesfully Unmuted ")
+        k = await m.reply_text(f"🔊 Ses Başarıyla Açıldı ")
         await delete_messages([m, k])
         return
     else:
-        k=await m.reply_text("Not muted, already unmuted.")    
+        k=await m.reply_text("Sessize Alınamadı.")    
         await delete_messages([m, k])
 
 
@@ -226,13 +226,13 @@ async def replay_playout(client, m: Message):
     msg = await m.reply('Checking player')
     if not Config.CALL_STATUS:
         await msg.edit(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
         await delete_messages([m])
         return
-    await msg.edit(f"Replaying from begining")
+    await msg.edit(f"Video Tekrar Başlatılıyor")
     await restart_playout()
     await delete_messages([m, msg])
 
@@ -241,7 +241,7 @@ async def replay_playout(client, m: Message):
 async def show_player(client, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
@@ -250,7 +250,7 @@ async def show_player(client, m: Message):
     data=Config.DATA.get('FILE_DATA')
     if not data.get('dur', 0) or \
         data.get('dur') == 0:
-        title="<b>Playing Live Stream</b> ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"
+        title="<b>Canlı Yayın Başlatılıyor</b> ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"
     else:
         if Config.playlist:
             title=f"<b>{Config.playlist[0][1]}</b> ㅤㅤㅤㅤ\n ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"
@@ -279,7 +279,7 @@ async def show_player(client, m: Message):
 async def seek_playout(client, m: Message):
     if not Config.CALL_STATUS:
         await m.reply_text(
-            "Player is idle, start the player using below button. ㅤㅤㅤ ㅤㅤ",
+            "Oyuncu boşta, aşağıdaki düğmeyi kullanarak oynatıcıyı başlatın. ㅤㅤㅤ ㅤㅤ",
             disable_web_page_preview=True,
             reply_markup=await get_buttons()
         )
