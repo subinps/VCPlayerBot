@@ -72,7 +72,7 @@
       },
       "REPLY_MESSAGE": {
         "description": "A reply message to those who message the USER account in PM. Make it blank if you do not need this feature.",
-        "value": "Helo Ser, Iam a bot to play music, not havimg time to chat with you.",
+        "value": "Hey, Iam a bot to play music, not having time to chat with you.",
         "required": false
       }
     },
