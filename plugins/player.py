@@ -501,8 +501,8 @@ async def not_chat(_, m: Message):
     else:
         buttons = [
             [
-                InlineKeyboardButton('⚡️ Bot', url='https://t.me/HotroBot'),
-                InlineKeyboardButton('🧩 Cập nhật', url='https://t.me/Hotrobot'),
+                InlineKeyboardButton('⚡️ Bot', url='https://t.me/hotrooggy'),
+                InlineKeyboardButton('🧩 Cập nhật', url='https://t.me/hotrooggy'),
             ]
             ]
         await m.reply("<b>Bạn không thể sử dụng bot này trong nhóm này, vì vậy bạn phải tạo bot của riêng mình từ @owogram.</b>", disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(buttons))
