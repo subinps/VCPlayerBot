@@ -1,10 +1,11 @@
 git+https://github.com/pyrogram/pyrogram@master
-py-tgcalls==0.8.1rc1
+py-tgcalls
 parse-torrent-name
 tgcrypto
 yt-dlp
-youtube_search_python
-youtube_search
+youtube-search-python
+httpx==0.14.2
+youtube-search
 heroku3
 pillow
 motor
