@@ -1,10 +1,9 @@
-git+https://github.com/pyrogram/pyrogram@master
+pyrogram
 py-tgcalls
 parse-torrent-name
 tgcrypto
-yt-dlp
+yt-dlp==2021.11.10.1
 youtube-search-python
-httpx==0.14.2
 youtube-search
 heroku3
 pillow
