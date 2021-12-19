@@ -19,7 +19,7 @@ from config import Config
 from user import group_call
 import time
 from asyncio import sleep
-from pyrogram.raw.base import Update
+from pyrogram.raw.base import Update as PUpdate
 from pyrogram.raw.functions.channels import GetFullChannel
 from pytgcalls import PyTgCalls
 from pytgcalls.types import Update
@@ -148,7 +148,7 @@ async def service_msg(client, message):
         pass
 
 @Client.on_raw_update()
-async def handle_raw_updates(client: Client, update: Update, user: dict, chat: dict):
+async def handle_raw_updates(client: Client, update: PUpdate, user: dict, chat: dict):
     if isinstance(update, UpdateGroupCallParticipants):
         if not Config.CURRENT_CALL:
             a = await client.send(
