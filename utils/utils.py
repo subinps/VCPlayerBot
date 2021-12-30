@@ -1332,6 +1332,8 @@ async def c_play(channel):
 async def pause():
     try:
         await group_call.pause_stream(Config.CHAT)
+        Config.DUR['PAUSE'] = time.time()
+        Config.PAUSE=True
         return True
     except GroupCallNotFound:
         await restart_playout()
@@ -1344,6 +1346,13 @@ async def pause():
 async def resume():
     try:
         await group_call.resume_stream(Config.CHAT)
+        pause=Config.DUR.get('PAUSE')
+        if pause:
+            diff = time.time() - pause
+            start=Config.DUR.get('TIME')
+            if start:
+                Config.DUR['TIME']=start+diff
+        Config.PAUSE=False
         return True
     except GroupCallNotFound:
         await restart_playout()
