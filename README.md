@@ -66,6 +66,8 @@ Telegram bot to stream videos in telegram voicechat for both groups and channels
 git clone https://github.com/subinps/VCPlayerBot
 cd VCPlayerBot
 pip3 install -r requirements.txt
+# install node js
+sudo bash install_node.sh
 # <Create Variables appropriately (.env [optional])>
 python3 main.py
 ```
