@@ -233,7 +233,7 @@ async def get_logs(client, message):
     button=[
         [
             InlineKeyboardButton(text='🔁 Refresh Logs', callback_data='recheck_log'),
-            InlineKeyboardButton(text='🗑️ Close', callback_data='close')
+            InlineKeyboardButton(text='🗑️ Close', callback_data='close'),
         ]
     ]
     if os.path.exists("botlog.txt"):
