@@ -463,17 +463,25 @@ async def cb_handler(client: Client, query: CallbackQuery):
                     InlineKeyboardButton(text='🗑️ Close', callback_data='close'),
                 ]
             ]
-            await query.message.edit_text("Checking logs...")
+            await query.answer("Checking logs...")
             if os.path.exists('botlog.txt'):
-                await query.message.delete()
-                await message.reply_document(
-                    'botlog.txt',
-                    caption="Bot Logs",
-                    reply_markup=button
-                )
-                await delete_messages([message])
+                if query.message.document:
+                    await query.message.edit_document(
+                        'botlog.txt',
+                        caption="Bot Logs",
+                        reply_markup=button
+                    )
+                    await delete_messages([message])
+                else:
+                    await query.message.delete()
+                    await message.reply_document(
+                        'botlog.txt',
+                        caption="Bot Logs",
+                        reply_markup=button
+                    )
+                    await delete_messages([message])
             else:
-                await query.message.edit_text("No log files found.")
+                await query.message.answer("No log files found. Try again using refresh logs button.")
 
         elif query.data.startswith("volume"):
             me, you = query.data.split("_")  
