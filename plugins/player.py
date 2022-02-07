@@ -17,7 +17,7 @@ from utils import LOGGER
 from youtube_search import YoutubeSearch
 from contextlib import suppress
 from pyrogram.types import Message
-from yt_dlp import YoutubeDL
+from youtubedl import YoutubeDL
 from datetime import datetime
 from pyrogram import filters
 from config import Config
