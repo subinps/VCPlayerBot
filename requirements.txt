@@ -2,7 +2,7 @@ pyrogram==1.3.6
 py-tgcalls==0.8.2
 parse-torrent-name
 tgcrypto
-yt-dlp
+youtube-dl
 youtube-search-python
 httpx==0.14.2
 youtube-search
