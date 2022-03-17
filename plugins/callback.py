@@ -135,7 +135,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                         [
                             InlineKeyboardButton(f"Misc", callback_data='help_misc'),
                             InlineKeyboardButton("Config Vars", callback_data='help_env'),
-                            InlineKeyboardButton("Close", callback_data="close"),
+                            InlineKeyboardButton("Close.", callback_data="close"),
                         ],
                     ]
                     )
