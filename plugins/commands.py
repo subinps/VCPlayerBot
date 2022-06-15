@@ -53,7 +53,7 @@ IST = pytz.timezone(Config.TIME_ZONE)
 if Config.DATABASE_URI:
     from utils import db
 
-HOME_TEXT = "<b>Hey  [{}](tg://user?id={}) 🙋‍♂️\n\nIam A Bot Built To Play or Stream Videos In Telegram VoiceChats.\nI Can Stream Any YouTube Video Or A Telegram File Or Even A YouTube Live.</b>"
+HOME_TEXT = "<b>Hey  [{}](tg://user?id={}) 🙋‍♂️\n\nI'm a Bot built to Play or Stream Videos in Telegram Video Chats.\nI can Stream any YouTube Video or a Telegram File or even a YouTube Live.</b>"
 admin_filter=filters.create(is_admin) 
 
 @Client.on_message(filters.command(['start', f"start@{Config.BOT_USERNAME}"]))
@@ -78,7 +78,7 @@ async def start(client, message):
                     ],
                 ]
                 )
-            await message.reply("Learn to use the VCPlayer, Showing help menu, Choose from the below options.",
+            await message.reply("Learn to use the VCPlayer. Showing help menu, Choose from the below options.",
                 reply_markup=reply_markup,
                 disable_web_page_preview=True
                 )
@@ -87,13 +87,13 @@ async def start(client, message):
             you, me = message.command[1].split("_", 1)
             who=Config.SCHEDULED_STREAM.get(me)
             if not who:
-                return await msg.edit("Something gone somewhere.")
+                return await msg.edit("Oops! Something went wrong.")
             del Config.SCHEDULED_STREAM[me]
             whom=f"{message.chat.id}_{msg.message_id}"
             Config.SCHEDULED_STREAM[whom] = who
             await sync_to_db()
             if message.from_user.id not in Config.ADMINS:
-                return await msg.edit("OK da")
+                return await msg.edit("You can't manage schedules, because you are not an admin.")
             today = datetime.now(IST)
             smonth=today.strftime("%B")
             obj = calendar.Calendar()
@@ -122,7 +122,7 @@ async def start(client, message):
                     f.append(InlineKeyboardButton(text=f"{k}",callback_data=f"sch_month_{year_}_{month}_{d}"))
                 button.append(f)
             button.append([InlineKeyboardButton("Close", callback_data="schclose")])
-            await msg.edit(f"Choose the day of the month you want to schedule the voicechat.\nToday is {thisday} {smonth} {year}. Chooosing a date preceeding today will be considered as next year {year+1}", reply_markup=InlineKeyboardMarkup(button))
+            await msg.edit(f"Choose the day of the month you want to schedule the video chat.\nToday is {thisday} {smonth} {year}. Chooosing a date preceeding today will be considered as next year {year+1}", reply_markup=InlineKeyboardMarkup(button))
 
 
 
@@ -166,7 +166,7 @@ async def show_help(client, message):
         )
     if message.chat.type != "private" and message.from_user is None:
         k=await message.reply(
-            text="I cant help you here, since you are an anonymous admin. Get help in PM",
+            text="I can't help you here, since you are an anonymous admin. Get help in PM.",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
@@ -179,7 +179,7 @@ async def show_help(client, message):
     if Config.msg.get('help') is not None:
         await Config.msg['help'].delete()
     Config.msg['help'] = await message.reply_text(
-        "Learn to use the VCPlayer, Showing help menu, Choose from the below options.",
+        "Learn to use the VCPlayer. Showing help menu, Choose from the below options.",
         reply_markup=reply_markup,
         disable_web_page_preview=True
         )
@@ -196,7 +196,10 @@ async def repo_(client, message):
             InlineKeyboardButton('🗑 Close', callback_data='close'),
         ]
     ]
-    await message.reply("<b>The source code of this bot is public and can be found at <a href=https://github.com/subinps/VCPlayerBot>VCPlayerBot.</a>\nYou can deploy your own bot and use in your group.\n\nFeel free to star☀️ the repo if you liked it 🙃.</b>", reply_markup=InlineKeyboardMarkup(buttons), disable_web_page_preview=True)
+    await message.reply(
+        "<b>The source code of this bot is public and can be found at <a href=https://github.com/subinps/VCPlayerBot>VCPlayerBot</a>.\nYou can deploy your own bot and use in your group.\n\nFeel free to star 🌟 the repo if you liked it 🙃.</b>",
+        reply_markup=InlineKeyboardMarkup(buttons),
+        disable_web_page_preview=True)
     await delete_messages([message])
 
 @Client.on_message(filters.command(['restart', 'update', f"restart@{Config.BOT_USERNAME}", f"update@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
@@ -227,18 +230,29 @@ async def update_handler(client, message):
 @Client.on_message(filters.command(['logs', f"logs@{Config.BOT_USERNAME}"]) & admin_filter & chat_filter)
 async def get_logs(client, message):
     m=await message.reply("Checking logs..")
+    button=[
+        [
+            InlineKeyboardButton(text='🔁 Refresh Logs', callback_data='recheck_log'),
+            InlineKeyboardButton(text='🗑️ Close', callback_data='close'),
+        ]
+    ]
     if os.path.exists("botlog.txt"):
-        await message.reply_document('botlog.txt', caption="Bot Logs")
+        await message.reply_document(
+            'botlog.txt',
+            caption="Bot Logs",
+            )
         await m.delete()
         await delete_messages([message])
     else:
-        k = await m.edit("No log files found.")
+        k = await m.edit(
+            "No log files found.",
+            reply_markup=button)
         await delete_messages([message, k])
 
 @Client.on_message(filters.command(['env', f"env@{Config.BOT_USERNAME}", "config", f"config@{Config.BOT_USERNAME}"]) & sudo_filter & chat_filter)
 async def set_heroku_var(client, message):
     with suppress(MessageIdInvalid, MessageNotModified):
-        m = await message.reply("Checking config vars..")
+        m = await message.reply("Checking Config Vars..")
         if " " in message.text:
             cmd, env = message.text.split(" ", 1)
             if "=" in env:
@@ -268,7 +282,7 @@ async def set_heroku_var(client, message):
             return
 
         if Config.DATABASE_URI and var in ["STARTUP_STREAM", "CHAT", "LOG_GROUP", "REPLY_MESSAGE", "DELAY", "RECORDING_DUMP", "QUALITY"]:      
-            await m.edit("Mongo DB Found, Setting up config vars...")
+            await m.edit("MongoDB Found, Setting up config vars...")
             await asyncio.sleep(2)  
             if not value:
                 await m.edit(f"No value for env specified. Trying to delete env {var}.")
@@ -300,7 +314,7 @@ async def set_heroku_var(client, message):
                                 elif value == "low":
                                     value = 50
                         else:
-                            await m.edit("You should give me a chat id . It should be an interger.")
+                            await m.edit("You should give me a chat id. It should be an interger.")
                             await delete_messages([message, m])
                             return
                     if var == "CHAT":
@@ -337,7 +351,7 @@ async def set_heroku_var(client, message):
             if not Config.HEROKU_APP:
                 buttons = [[InlineKeyboardButton('Heroku API_KEY', url='https://dashboard.heroku.com/account/applications/authorizations/new'), InlineKeyboardButton('🗑 Close', callback_data='close'),]]
                 await m.edit(
-                    text="No heroku app found, this command needs the following heroku vars to be set.\n\n1. <code>HEROKU_API_KEY</code>: Your heroku account api key.\n2. <code>HEROKU_APP_NAME</code>: Your heroku app name.", 
+                    text="No Heroku app found, this command needs the following heroku vars to be set.\n\n1. <code>HEROKU_API_KEY</code>: Your heroku account api key.\n2. <code>HEROKU_APP_NAME</code>: Your heroku app name.", 
                     reply_markup=InlineKeyboardMarkup(buttons)) 
                 await delete_messages([message])
                 return     

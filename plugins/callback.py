@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+
 from utils import LOGGER
 from pyrogram import Client
 from contextlib import suppress
@@ -107,9 +109,9 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
         elif query.data.startswith("help"):
             if query.message.chat.type != "private" and query.message.reply_to_message.from_user is None:
-                return await query.answer("I cant help you here, since you are an anonymous admin, message me in private chat.", show_alert=True)
+                return await query.answer("I can't help you here, since you are an anonymous admin, message me in private chat.", show_alert=True)
             elif query.message.chat.type != "private" and query.from_user.id != query.message.reply_to_message.from_user.id:
-                return await query.answer("Okda", show_alert=True)
+                return await query.answer("You need to be an admin to do this.", show_alert=True)
             me, nyav = query.data.split("_")
             back=InlineKeyboardMarkup(
                 [
@@ -160,16 +162,16 @@ async def cb_handler(client: Client, query: CallbackQuery):
             
         if not query.from_user.id in admins:
             await query.answer(
-                "😒 Played Joji.mp3",
+                "You need to be an admin to do this.",
                 show_alert=True
                 )
             return
         #scheduler stuffs
         if query.data.startswith("sch"):
             if query.message.chat.type != "private" and query.message.reply_to_message.from_user is None:
-                return await query.answer("You cant use scheduling here, since you are an anonymous admin. Schedule from private chat.", show_alert=True)
+                return await query.answer("You can't use scheduling here, since you are an anonymous admin. Schedule from private chat.", show_alert=True)
             if query.message.chat.type != "private" and query.from_user.id != query.message.reply_to_message.from_user.id:
-                return await query.answer("Okda", show_alert=True)
+                return await query.answer("Ok, I will do this.", show_alert=True)
             data = query.data
             today = datetime.datetime.now(IST)
             smonth=today.strftime("%B")
@@ -195,7 +197,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                             button.append([InlineKeyboardButton(text=f"{str(month)}  {str(year_)}",callback_data=f"sch_showdate_{year_}_{k}")])
                     button = button + button_
                     button.append([InlineKeyboardButton("Close", callback_data="schclose")])
-                    await query.message.edit("Now Choose the month to schedule a voicechatㅤ ㅤㅤ", reply_markup=InlineKeyboardMarkup(button))
+                    await query.message.edit("Now choose the month to schedule a video chatㅤ ㅤㅤ", reply_markup=InlineKeyboardMarkup(button))
                 elif day == "none":
                     return
                 else:
@@ -223,7 +225,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                     else:
                         pyear=year
                     button.append([InlineKeyboardButton("Back", callback_data=f"sch_showdate_{pyear}_{month}"), InlineKeyboardButton("Close", callback_data="schclose")])
-                    await query.message.edit(f"Choose the hour of {date} {smonth} {year} to schedule  a voicechat.", reply_markup=InlineKeyboardMarkup(button))
+                    await query.message.edit(f"Choose the hour of {date} {smonth} {year} to schedule  a video chat.", reply_markup=InlineKeyboardMarkup(button))
 
             elif data.startswith("sch_day"):
                 none, none, year, month, day, hour = data.split("_")
@@ -260,7 +262,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 datetime_object = datetime.datetime.strptime(str(month), "%m")
                 smonth = datetime_object.strftime("%B")
                 if year == today.year and month == today.month and day == today.day and hour == today.hour and minute <= today.minute:
-                    await query.answer("I dont have a timemachine to go to past!!!.")
+                    await query.answer("I don't have a time machine to go to past!!!")
                     return 
                 final=f"{day}th {smonth} {year} at {hour}:{minute}"
                 button=[
@@ -274,7 +276,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 ]
                 data=Config.SCHEDULED_STREAM.get(f"{query.message.chat.id}_{query.message.message_id}")
                 if not data:
-                    await query.answer("This schedule is expired", show_alert=True)
+                    await query.answer("This schedule is expired.", show_alert=True)
                 if data['3'] == "telegram":
                     title=data['1']
                 else:
@@ -312,7 +314,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                         f.append(InlineKeyboardButton(text=f"{k}",callback_data=f"sch_month_{year_}_{month}_{d}"))
                     button.append(f)
                 button.append([InlineKeyboardButton("Close", callback_data="schclose")])
-                await query.message.edit(f"Choose the day of the month you want to schedule the voicechat.\nToday is {thisday} {smonth} {tyear}. Chooosing a date preceeding today will be considered as next year {year+1}", reply_markup=InlineKeyboardMarkup(button))
+                await query.message.edit(f"Choose the day of the month you want to schedule the video chat.\nToday is {thisday} {smonth} {tyear}. Chooosing a date preceeding today will be considered as next year {year+1}", reply_markup=InlineKeyboardMarkup(button))
 
             elif data.startswith("schconfirm"):
                 none, date = data.split("_")
@@ -333,13 +335,15 @@ async def cb_handler(client: Client, query: CallbackQuery):
             elif query.data == "schcancel":
                 buttons = [
                     [
-                        InlineKeyboardButton('Yes, Iam Sure!!', callback_data='schcancelall'),
+                        InlineKeyboardButton('Yes, I'm sure!!', callback_data='schcancelall'),
                         InlineKeyboardButton('No', callback_data='schclose'),
                     ]
                 ]
-                await query.message.edit("Are you sure that you want to cancel all the scheduled streams?", reply_markup=InlineKeyboardMarkup(buttons))
+                await query.message.edit(
+                    "Are you sure that you want to cancel all the scheduled streams?",
+                    reply_markup=InlineKeyboardMarkup(buttons))
             elif data == "schclose":
-                await query.answer("Menu Closed")
+                await query.answer("Menu closed successfully")
                 await query.message.delete()
                 await query.message.reply_to_message.delete()
 
@@ -452,6 +456,33 @@ async def cb_handler(client: Client, query: CallbackQuery):
             await restart()
             await query.message.edit(text=await get_playlist_str(), reply_markup=await get_buttons(), disable_web_page_preview=True)
 
+        elif query.data == 'recheck_log':
+            button=[
+                [
+                    InlineKeyboardButton(text='🔁 Refresh Logs', callback_data='recheck_log'),
+                    InlineKeyboardButton(text='🗑️ Close', callback_data='close'),
+                ]
+            ]
+            await query.answer("Checking logs...")
+            if os.path.exists('botlog.txt'):
+                if query.message.document:
+                    await query.message.edit_document(
+                        'botlog.txt',
+                        caption="Bot Logs",
+                        reply_markup=button
+                    )
+                    await delete_messages([message])
+                else:
+                    await query.message.delete()
+                    await message.reply_document(
+                        'botlog.txt',
+                        caption="Bot Logs",
+                        reply_markup=button
+                    )
+                    await delete_messages([message])
+            else:
+                await query.message.answer("No log files found. Try again using refresh logs button.")
+
         elif query.data.startswith("volume"):
             me, you = query.data.split("_")  
             if you == "main":
@@ -539,7 +570,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
             elif query.data == "set_new_chat":
                 if query.from_user is None:
-                    return await query.answer("You cant do scheduling here, since you are an anonymous admin. Schedule from private chat.", show_alert=True)
+                    return await query.answer("You can't do scheduling here, since you are an anonymous admin. Schedule from private chat.", show_alert=True)
                 if query.from_user.id in Config.SUDO:
                     await query.answer("Setting up new CHAT")
                     chat=query.message.chat.id
@@ -571,7 +602,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 elif query.from_user.id in Config.ADMINS:
                     pass
                 else:
-                    return await query.answer("Okda", show_alert=True)
-                await query.answer("Menu Closed")
+                    return await query.answer("You need to be an admin to do this.", show_alert=True)
+                await query.answer("Menu closed successfully")
                 await query.message.delete()
         await query.answer()
