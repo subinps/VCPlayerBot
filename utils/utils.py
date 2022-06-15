@@ -16,7 +16,7 @@
 from .logger import LOGGER
 try:
     from pyrogram.raw.types import InputChannel
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler   
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from apscheduler.jobstores.mongodb import MongoDBJobStore
     from apscheduler.jobstores.base import ConflictingIdError
     from pyrogram.raw.functions.channels import GetFullChannel
@@ -29,7 +29,7 @@ try:
     from math import gcd
     from .pyro_dl import Downloader
     from config import Config
-    from asyncio import sleep  
+    from asyncio import sleep
     from bot import bot
     from PTN import parse
     import subprocess
@@ -41,13 +41,13 @@ try:
     import os
     import math
     from pyrogram.errors.exceptions.bad_request_400 import (
-        BadRequest, 
+        BadRequest,
         ScheduleDateInvalid,
         PeerIdInvalid,
         ChannelInvalid
     )
     from pytgcalls.types.input_stream import (
-        AudioVideoPiped, 
+        AudioVideoPiped,
         AudioPiped,
         AudioImagePiped
     )
@@ -56,29 +56,29 @@ try:
         VideoParameters
     )
     from pyrogram.types import (
-        InlineKeyboardButton, 
-        InlineKeyboardMarkup, 
+        InlineKeyboardButton,
+        InlineKeyboardMarkup,
         Message
     )
     from pyrogram.raw.functions.phone import (
-        EditGroupCallTitle, 
+        EditGroupCallTitle,
         CreateGroupCall,
         ToggleGroupCallRecord,
-        StartScheduledGroupCall 
+        StartScheduledGroupCall
     )
     from pytgcalls.exceptions import (
-        GroupCallNotFound, 
+        GroupCallNotFound,
         NoActiveGroupCall,
         InvalidVideoProportion
     )
     from PIL import (
-        Image, 
-        ImageFont, 
-        ImageDraw 
+        Image,
+        ImageFont,
+        ImageDraw
     )
 
     from user import (
-        group_call, 
+        group_call,
         USER
     )
 except ModuleNotFoundError:
@@ -102,7 +102,7 @@ scheduler.start()
 dl=Downloader()
 
 async def play():
-    song=Config.playlist[0]    
+    song=Config.playlist[0]
     if song[3] == "telegram":
         file=Config.GET_FILE.get(song[5])
         if not file:
@@ -126,11 +126,11 @@ async def play():
         file=await get_link(song[2])
     if not file:
         if Config.playlist or Config.STREAM_LINK:
-            return await skip()     
+            return await skip()
         else:
             LOGGER.error("This stream is not supported , leaving VC.")
             await leave_call()
-            return False 
+            return False
     link, seek, pic, width, height = await chek_the_media(file, title=f"{song[1]}")
     if not link:
         LOGGER.warning("Unsupported link, Skiping from queue.")
@@ -197,7 +197,7 @@ async def run_schedule(job_id):
         if len(Config.playlist) <= 1:
             return
         await download(Config.playlist[1])
-      
+
 async def cancel_all_schedules():
     for sch in Config.SCHEDULE_LIST:
         job=sch['job_id']
@@ -205,7 +205,7 @@ async def cancel_all_schedules():
         if k:
             scheduler.remove_job(job, jobstore=None)
         if Config.SCHEDULED_STREAM.get(job):
-            del Config.SCHEDULED_STREAM[job]      
+            del Config.SCHEDULED_STREAM[job]
     Config.SCHEDULE_LIST.clear()
     await sync_to_db()
     LOGGER.info("All the schedules are removed")
@@ -274,9 +274,9 @@ async def check_vc():
         if Config.HAS_SCHEDULE:
             await start_scheduled()
         return True
-    
 
-async def join_call(link, seek, pic, width, height):  
+
+async def join_call(link, seek, pic, width, height, headers={}):
     if not await check_vc():
         LOGGER.error("No voice call found and was unable to create a new one. Exiting...")
         return
@@ -285,13 +285,13 @@ async def join_call(link, seek, pic, width, height):
     if Config.CALL_STATUS:
         if Config.IS_ACTIVE == False:
             Config.CALL_STATUS = False
-            return await join_call(link, seek, pic, width, height)
-        play=await change_file(link, seek, pic, width, height)
+            return await join_call(link, seek, pic, width, height, headers)
+        play=await change_file(link, seek, pic, width, height, headers)
     else:
-        play=await join_and_play(link, seek, pic, width, height)
+        play=await join_and_play(link, seek, pic, width, height, headers)
     if play == False:
         await sleep(1)
-        await join_call(link, seek, pic, width, height)
+        await join_call(link, seek, pic, width, height, headers)
     await sleep(1)
     if not seek:
         Config.DUR["TIME"]=time.time()
@@ -336,7 +336,7 @@ async def start_scheduled():
             Config.HAS_SCHEDULE=False
             return await check_vc()
 
-async def join_and_play(link, seek, pic, width, height):
+async def join_and_play(link, seek, pic, width, height, headers={}):
     try:
         if seek:
             start=str(seek['start'])
@@ -350,6 +350,7 @@ async def join_and_play(link, seek, pic, width, height):
                             Config.BITRATE
                             ),
                         additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+                        headers=headers,
                         ),
                     stream_type=StreamType().pulse_stream,
                 )
@@ -369,6 +370,7 @@ async def join_and_play(link, seek, pic, width, height):
                             audio_parameters=AudioParameters(
                                 Config.BITRATE,
                             ),
+                            headers=headers,
                             additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',                        ),
                         stream_type=StreamType().pulse_stream,
                     )
@@ -377,10 +379,10 @@ async def join_and_play(link, seek, pic, width, height):
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
                         if Config.playlist or Config.STREAM_LINK:
-                            return await skip()     
+                            return await skip()
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
-                            return 
+                            return
                     cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
                     await group_call.join_group_call(
                         int(Config.CHAT),
@@ -395,6 +397,7 @@ async def join_and_play(link, seek, pic, width, height):
                                 Config.BITRATE
                             ),
                             additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+                            headers=headers,
                             ),
                         stream_type=StreamType().pulse_stream,
                     )
@@ -407,6 +410,7 @@ async def join_and_play(link, seek, pic, width, height):
                         audio_parameters=AudioParameters(
                             Config.BITRATE
                             ),
+                        headers=headers,
                         ),
                     stream_type=StreamType().pulse_stream,
                 )
@@ -425,7 +429,8 @@ async def join_and_play(link, seek, pic, width, height):
                             ),
                             audio_parameters=AudioParameters(
                                 Config.BITRATE,
-                            ),      
+                            ),
+                            headers=headers,
                             ),
                         stream_type=StreamType().pulse_stream,
                     )
@@ -434,10 +439,10 @@ async def join_and_play(link, seek, pic, width, height):
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
                         if Config.playlist or Config.STREAM_LINK:
-                            return await skip()     
+                            return await skip()
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
-                            return 
+                            return
                     cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
                     await group_call.join_group_call(
                         int(Config.CHAT),
@@ -451,6 +456,7 @@ async def join_and_play(link, seek, pic, width, height):
                             audio_parameters=AudioParameters(
                                 Config.BITRATE
                             ),
+                            headers=headers,
                         ),
                         stream_type=StreamType().pulse_stream,
                     )
@@ -474,16 +480,16 @@ async def join_and_play(link, seek, pic, width, height):
     except InvalidVideoProportion:
         LOGGER.error("This video is unsupported")
         if Config.playlist or Config.STREAM_LINK:
-            return await skip()     
+            return await skip()
         else:
             LOGGER.error("This stream is not supported , leaving VC.")
-            return 
+            return
     except Exception as e:
         LOGGER.error(f"Errors Occured while joining, retrying Error- {e}", exc_info=True)
         return False
 
 
-async def change_file(link, seek, pic, width, height):
+async def change_file(link, seek, pic, width, height, headers={}):
     try:
         if seek:
             start=str(seek['start'])
@@ -498,6 +504,7 @@ async def change_file(link, seek, pic, width, height):
                             ),
                         additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
                         ),
+                    headers=headers,
                 )
             else:
                 if pic:
@@ -516,16 +523,17 @@ async def change_file(link, seek, pic, width, height):
                                 Config.BITRATE,
                             ),
                             additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',                        ),
+                            headers=headers,
                     )
                 else:
                     if not width \
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
                         if Config.playlist or Config.STREAM_LINK:
-                            return await skip()     
+                            return await skip()
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
-                            return 
+                            return
 
                     cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
                     await group_call.change_stream(
@@ -541,6 +549,7 @@ async def change_file(link, seek, pic, width, height):
                                 Config.BITRATE
                             ),
                             additional_ffmpeg_parameters=f'-ss {start} -atend -t {end}',
+                            headers=headers,
                         ),
                         )
         else:
@@ -552,6 +561,7 @@ async def change_file(link, seek, pic, width, height):
                         audio_parameters=AudioParameters(
                             Config.BITRATE
                             ),
+                        headers=headers,
                         ),
                 )
             else:
@@ -570,6 +580,7 @@ async def change_file(link, seek, pic, width, height):
                             audio_parameters=AudioParameters(
                                 Config.BITRATE,
                             ),
+                            headers=headers,
                         ),
                     )
                 else:
@@ -577,10 +588,10 @@ async def change_file(link, seek, pic, width, height):
                         or not height:
                         LOGGER.error("No Valid Video Found and hence removed from playlist.")
                         if Config.playlist or Config.STREAM_LINK:
-                            return await skip()     
+                            return await skip()
                         else:
                             LOGGER.error("This stream is not supported , leaving VC.")
-                            return 
+                            return
                     cwidth, cheight = resize_ratio(width, height, Config.CUSTOM_QUALITY)
                     await group_call.change_stream(
                         int(Config.CHAT),
@@ -594,16 +605,17 @@ async def change_file(link, seek, pic, width, height):
                             audio_parameters=AudioParameters(
                                 Config.BITRATE,
                             ),
+                            headers=headers,
                         ),
                         )
     except InvalidVideoProportion:
         LOGGER.error("Invalid video, skipped")
         if Config.playlist or Config.STREAM_LINK:
-            return await skip()     
+            return await skip()
         else:
             LOGGER.error("This stream is not supported , leaving VC.")
             await leave_call()
-            return 
+            return
     except Exception as e:
         LOGGER.error(f"Error in joining call - {e}", exc_info=True)
         return False
@@ -616,7 +628,7 @@ async def seek_file(seektime):
     else:
         data=Config.DATA.get("FILE_DATA")
         if not data:
-            return False, "No Streams for seeking"        
+            return False, "No Streams for seeking"
         played=int(float(time.time())) - int(float(play_start))
         if data.get("dur", 0) == 0:
             return False, "Seems like live stream is playing, which cannot be seeked."
@@ -627,10 +639,10 @@ async def seek_file(seektime):
             return False, "Seeked duration exceeds maximum duration of file"
         new_play_start=int(play_start) - int(seektime)
         Config.DUR['TIME']=new_play_start
-        link, seek, pic, width, height = await chek_the_media(data.get("file"), seek={"start":trimstart, "end":trimend})
-        await join_call(link, seek, pic, width, height)
+        link, seek, pic, width, height = await chek_the_media(data.get("file"), seek={"start":trimstart, "end":trimend}, headers=data.get("headers"))
+        await join_call(link, seek, pic, width, height, headers=data.get("headers"))
         return True, None
-    
+
 
 
 async def leave_call():
@@ -665,8 +677,8 @@ async def leave_call():
             except Exception as e:
                 LOGGER.error(f"Error in scheduling voicechat- {e}", exc_info=True)
     await sync_to_db()
-            
-                
+
+
 
 
 async def restart():
@@ -694,14 +706,14 @@ async def restart_playout():
     LOGGER.info(f"RESTART PLAYING: {Config.playlist[0][1]}")
     data=Config.DATA.get('FILE_DATA')
     if data:
-        link, seek, pic, width, height = await chek_the_media(data['file'], title=f"{Config.playlist[0][1]}")
+        link, seek, pic, width, height = await chek_the_media(data['file'], title=f"{Config.playlist[0][1]}",headers=data["headers"])
         if not link:
             LOGGER.warning("Unsupported Link")
             return
         await sleep(1)
         if Config.STREAM_LINK:
             Config.STREAM_LINK=False
-        await join_call(link, seek, pic, width, height)
+        await join_call(link, seek, pic, width, height,headers=data["headers"])
     else:
         await play()
     if len(Config.playlist) <= 1:
@@ -738,10 +750,10 @@ async def set_up_startup():
         LOGGER.info("Direct link set as STARTUP_STREAM")
         pass
     Config.STREAM_SETUP=True
-    
-    
 
-async def start_stream(): 
+
+
+async def start_stream():
     if not Config.STREAM_SETUP:
         await set_up_startup()
     if Config.YPLAY:
@@ -759,28 +771,37 @@ async def start_stream():
         link=await get_link(Config.STREAM_URL)
     else:
         link=Config.STREAM_URL
-    link, seek, pic, width, height = await chek_the_media(link, title="Startup Stream")
+    headers = {}
+    if "|" in link:
+        link, headers = link.split("|")
+        headers = headers.split("&")
+        headers_dict = {}
+        for header in headers:
+            eq = header.find("=")
+            headers_dict[header[0:eq]]=header[eq+1:]
+        headers = headers_dict
+    link, seek, pic, width, height = await chek_the_media(link, title="Startup Stream", headers=headers)
     if not link:
         LOGGER.warning("Unsupported link")
         return False
     if Config.IS_VIDEO:
         if not ((width and height) or pic):
             LOGGER.error("Stream Link is invalid")
-            return 
+            return
     #if Config.playlist:
         #Config.playlist.clear()
-    await join_call(link, seek, pic, width, height)
+    await join_call(link, seek, pic, width, height, headers=headers)
 
 
-async def stream_from_link(link):
-    link, seek, pic, width, height = await chek_the_media(link)
+async def stream_from_link(link, headers={}):
+    link, seek, pic, width, height = await chek_the_media(link, headers)
     if not link:
         LOGGER.error("Unable to obtain sufficient information from the given url")
         return False, "Unable to obtain sufficient information from the given url"
     #if Config.playlist:
         #Config.playlist.clear()
     Config.STREAM_LINK=link
-    await join_call(link, seek, pic, width, height)
+    await join_call(link, seek, pic, width, height, headers)
     return True, None
 
 
@@ -815,10 +836,10 @@ async def get_link(file):
 async def download(song, msg=None):
     if song[3] == "telegram":
         if not Config.GET_FILE.get(song[5]):
-            try: 
+            try:
                 original_file = await dl.pyro_dl(song[2])
                 Config.GET_FILE[song[5]]=original_file
-                return original_file          
+                return original_file
             except Exception as e:
                 LOGGER.error(e, exc_info=True)
                 Config.playlist.remove(song)
@@ -826,15 +847,15 @@ async def download(song, msg=None):
                 if len(Config.playlist) <= 1:
                     return
                 await download(Config.playlist[1])
-   
 
 
-async def chek_the_media(link, seek=False, pic=False, title="Music"):
+
+async def chek_the_media(link, seek=False, pic=False, title="Music", headers={}):
     if not Config.IS_VIDEO:
         width, height = None, None
         is_audio_=False
         try:
-            is_audio_ = await is_audio(link)
+            is_audio_ = await is_audio(link, headers)
         except Exception as e:
             LOGGER.error(e, exc_info=True)
             is_audio_ = False
@@ -843,19 +864,19 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
             LOGGER.error("No Audio Source found")
             Config.STREAM_LINK=False
             if Config.playlist or Config.STREAM_LINK:
-                await skip()     
+                await skip()
                 return None, None, None, None, None
             else:
                 LOGGER.error("This stream is not supported , leaving VC.")
                 return None, None, None, None, None
-            
+
     else:
         if os.path.isfile(link) \
             and "audio" in Config.playlist[0][5]:
-                width, height = None, None            
+                width, height = None, None
         else:
             try:
-                width, height = await get_height_and_width(link)
+                width, height = await get_height_and_width(link, headers)
             except Exception as e:
                 LOGGER.error(e, exc_info=True)
                 width, height = None, None
@@ -864,7 +885,7 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
             not height:
             is_audio_=False
             try:
-                is_audio_ = await is_audio(link)
+                is_audio_ = await is_audio(link, headers)
             except:
                 is_audio_ = False
                 LOGGER.error("Unable to get Audio properties within time.")
@@ -874,23 +895,23 @@ async def chek_the_media(link, seek=False, pic=False, title="Music"):
                 if not os.path.exists(photo):
                     photo = await pic_.download(file_name=photo)
                 try:
-                    dur_= await get_duration(link)
+                    dur_= await get_duration(link, headers)
                 except:
                     dur_=0
-                pic = get_image(title, photo, dur_) 
+                pic = get_image(title, photo, dur_)
             else:
                 Config.STREAM_LINK=False
                 if Config.playlist or Config.STREAM_LINK:
-                    await skip()     
+                    await skip()
                     return None, None, None, None, None
                 else:
                     LOGGER.error("This stream is not supported , leaving VC.")
                     return None, None, None, None, None
     try:
-        dur= await get_duration(link)
+        dur= await get_duration(link, headers)
     except:
         dur=0
-    Config.DATA['FILE_DATA']={"file":link, 'dur':dur}
+    Config.DATA['FILE_DATA']={"file":link, 'dur':dur, 'headers':headers}
     return link, seek, pic, width, height
 
 
@@ -898,8 +919,8 @@ async def edit_title():
     if Config.STREAM_LINK:
         title="Live Stream"
     elif Config.playlist:
-        title = Config.playlist[0][1]   
-    else:       
+        title = Config.playlist[0][1]
+    else:
         title = "Live Stream"
     try:
         chat = await USER.resolve_peer(Config.CHAT)
@@ -941,7 +962,7 @@ async def stop_recording():
                             )
                         )
                     ).full_chat.call,
-                start=False,                 
+                start=False,
                 )
             )
         Config.IS_RECORDING=False
@@ -968,7 +989,7 @@ async def stop_recording():
                 scheduler.remove_job(job, jobstore=None)
             await sync_to_db()
             return False, str(e)
-    
+
 
 
 
@@ -982,7 +1003,7 @@ async def start_record_stream():
     if a.full_chat.call is None:
         k=scheduler.get_job(job_id=job, jobstore=None)
         if k:
-            scheduler.remove_job(job, jobstore=None)      
+            scheduler.remove_job(job, jobstore=None)
         return False, "No GroupCall Found"
     try:
         if not Config.PORTRAIT:
@@ -1010,7 +1031,7 @@ async def start_record_stream():
                     start=True,
                     title=tt,
                     video=True,
-                    video_portrait=pt,                 
+                    video_portrait=pt,
                     )
                 )
             time=240
@@ -1029,14 +1050,14 @@ async def start_record_stream():
                             )
                         ).full_chat.call,
                     start=True,
-                    title=tt,                
+                    title=tt,
                     )
                 )
             time=86400
         Config.IS_RECORDING=True
         k=scheduler.get_job(job_id=job, jobstore=None)
         if k:
-            scheduler.remove_job(job, jobstore=None)   
+            scheduler.remove_job(job, jobstore=None)
         try:
             scheduler.add_job(renew_recording, "interval", id=job, minutes=time, max_instances=50, misfire_grace_time=None)
         except ConflictingIdError:
@@ -1068,7 +1089,7 @@ async def renew_recording():
         if a.full_chat.call is None:
             k=scheduler.get_job(job_id=job, jobstore=None)
             if k:
-                scheduler.remove_job(job, jobstore=None)      
+                scheduler.remove_job(job, jobstore=None)
             LOGGER.info("Groupcall empty, stopped scheduler")
             return
     except ConnectionError:
@@ -1099,7 +1120,7 @@ async def renew_recording():
                     start=True,
                     title=tt,
                     video=True,
-                    video_portrait=pt,                 
+                    video_portrait=pt,
                     )
                 )
         else:
@@ -1117,7 +1138,7 @@ async def renew_recording():
                             )
                         ).full_chat.call,
                     start=True,
-                    title=tt,                
+                    title=tt,
                     )
                 )
         Config.IS_RECORDING=True
@@ -1162,7 +1183,7 @@ async def shuffle_playlist():
     p = [v.append(Config.playlist[c]) for c in range(2,len(Config.playlist))]
     random.shuffle(v)
     for c in range(2,len(Config.playlist)):
-        Config.playlist.remove(Config.playlist[c]) 
+        Config.playlist.remove(Config.playlist[c])
         Config.playlist.insert(c,v[c-2])
 
 
@@ -1177,21 +1198,21 @@ async def import_play_list(file):
                 and not Config.CALL_STATUS:
                 LOGGER.info("Extracting link and Processing...")
                 await download(Config.playlist[0])
-                await play()   
+                await play()
             elif (len(Config.playlist) == 1 and Config.CALL_STATUS):
                 LOGGER.info("Extracting link and Processing...")
                 await download(Config.playlist[0])
-                await play()               
+                await play()
         if not Config.playlist:
             file.close()
             try:
                 os.remove(file)
             except:
                 pass
-            return False                      
+            return False
         file.close()
         for track in Config.playlist[:2]:
-            await download(track)   
+            await download(track)
         try:
             os.remove(file)
         except:
@@ -1236,12 +1257,12 @@ async def c_play(channel):
         channel=int(channel)
     else:
         if channel.startswith("@"):
-            channel = channel.replace("@", "")  
+            channel = channel.replace("@", "")
     try:
         chat=await USER.get_chat(channel)
         LOGGER.info(f"Searching files from {chat.title}")
         me=["video", "document", "audio"]
-        who=0  
+        who=0
         for filter in me:
             if filter in Config.FILTERS:
                 async for m in USER.search_messages(chat_id=channel, filter=filter):
@@ -1261,7 +1282,7 @@ async def c_play(channel):
                         else:
                             title=title_
                         file_id = you.audio.file_id
-                        unique = f"{nyav}_{you.audio.file_size}_audio"                    
+                        unique = f"{nyav}_{you.audio.file_size}_audio"
                     elif filter == "video":
                         file_id = you.video.file_id
                         title = you.video.file_name
@@ -1297,8 +1318,8 @@ async def c_play(channel):
                         print(f"- START PLAYING: {title}")
                     elif (len(Config.playlist) == 1 and Config.CALL_STATUS):
                         LOGGER.info(f"Downloading {title}")
-                        await download(Config.playlist[0])  
-                        await play()              
+                        await download(Config.playlist[0])
+                        await play()
         if who == 0:
             LOGGER.warning(f"No files found in {chat.title}, Change filter settings if required. Current filters are {Config.FILTERS}")
             if Config.CPLAY:
@@ -1314,9 +1335,9 @@ async def c_play(channel):
             if len(Config.playlist) > 2 and Config.SHUFFLE:
                 await shuffle_playlist()
             if Config.LOG_GROUP:
-                await send_playlist() 
+                await send_playlist()
             for track in Config.playlist[:2]:
-                await download(track)         
+                await download(track)
     except Exception as e:
         LOGGER.error(f"Errors occured while fetching songs from given channel - {e}", exc_info=True)
         if Config.CPLAY:
@@ -1360,7 +1381,7 @@ async def resume():
     except Exception as e:
         LOGGER.error(f"Errors Occured while resuming -{e}", exc_info=True)
         return False
-    
+
 
 async def volume(volume):
     try:
@@ -1370,7 +1391,7 @@ async def volume(volume):
         await restart_playout()
     except Exception as e:
         LOGGER.error(f"Errors Occured while changing volume Error -{e}", exc_info=True)
-    
+
 async def mute():
     try:
         await group_call.mute_stream(Config.CHAT)
@@ -1432,8 +1453,8 @@ async def valid_chat(_, client, message: Message):
         return True
     else:
         return False
-    
-chat_filter=filters.create(valid_chat) 
+
+chat_filter=filters.create(valid_chat)
 
 async def sudo_users(_, client, message: Message):
     if message.from_user is None and message.sender_chat:
@@ -1442,8 +1463,8 @@ async def sudo_users(_, client, message: Message):
         return True
     else:
         return False
-    
-sudo_filter=filters.create(sudo_users) 
+
+sudo_filter=filters.create(sudo_users)
 
 async def get_playlist_str():
     if not Config.CALL_STATUS:
@@ -1549,7 +1570,7 @@ async def settings_panel():
             [
                 InlineKeyboardButton('🗑 Close', callback_data='close'),
             ]
-            
+
         ]
         )
     await sync_to_db()
@@ -1623,8 +1644,8 @@ async def sync_to_db():
             await db.edit_config(var, getattr(Config, var))
 
 async def sync_from_db():
-    if Config.DATABASE_URI:  
-        await check_db() 
+    if Config.DATABASE_URI:
+        await check_db()
         for var in Config.CONFIG_LIST:
             setattr(Config, var, await db.get_config(var))
         Config.playlist = await db.get_playlist()
@@ -1650,8 +1671,8 @@ async def check_db():
 
 async def check_changes():
     if Config.DATABASE_URI:
-        await check_db() 
-        ENV_VARS = ["ADMINS", "SUDO", "CHAT", "LOG_GROUP", "STREAM_URL", "SHUFFLE", "ADMIN_ONLY", "REPLY_MESSAGE", 
+        await check_db()
+        ENV_VARS = ["ADMINS", "SUDO", "CHAT", "LOG_GROUP", "STREAM_URL", "SHUFFLE", "ADMIN_ONLY", "REPLY_MESSAGE",
     "EDIT_TITLE", "RECORDING_DUMP", "RECORDING_TITLE", "IS_VIDEO", "IS_LOOP", "DELAY", "PORTRAIT", "IS_VIDEO_RECORD", "CUSTOM_QUALITY"]
         for var in ENV_VARS:
             prev_default = await db.get_default(var)
@@ -1662,12 +1683,14 @@ async def check_changes():
                 if current_value != prev_default:
                     LOGGER.info("ENV change detected, Changing value in database.")
                     await db.edit_config(var, current_value)
-                    await db.edit_default(var, current_value)         
-    
-    
-async def is_audio(file):
+                    await db.edit_default(var, current_value)
+
+
+async def is_audio(file, headers={}):
     have_audio=False
     ffprobe_cmd = ["ffprobe", "-i", file, "-v", "quiet", "-of", "json", "-show_streams"]
+    for key, value in headers.items():
+        ffprobe_cmd += ["-headers", f"{key}: {value}"]
     process = await asyncio.create_subprocess_exec(
             *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
@@ -1684,10 +1707,12 @@ async def is_audio(file):
                 have_audio =True
                 break
     return have_audio
-    
 
-async def get_height_and_width(file):
+
+async def get_height_and_width(file, headers={}):
     ffprobe_cmd = ["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height", "-of", "json", file]
+    for key, value in headers.items():
+        ffprobe_cmd += ["-headers", f"{key}: {value}"]
     process = await asyncio.create_subprocess_exec(
         *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
@@ -1715,9 +1740,11 @@ async def get_height_and_width(file):
     return width, height
 
 
-async def get_duration(file):
+async def get_duration(file, headers={}):
     dur = 0
     ffprobe_cmd = ["ffprobe", "-i", file, "-v", "error", "-show_entries", "format=duration", "-of", "json", "-select_streams", "v:0"]
+    for key, value in headers.items():
+        ffprobe_cmd += ["-headers", f"{key}: {value}"]
     process = await asyncio.create_subprocess_exec(
         *ffprobe_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
@@ -1764,7 +1791,7 @@ def get_volume_string():
     if Config.MUTED:
         e='🔇'
     elif 0 < current < 75:
-        e="🔈" 
+        e="🔈"
     elif 75 < current < 150:
         e="🔉"
     else:
@@ -1788,7 +1815,7 @@ def convert(seconds):
     hour = seconds // 3600
     seconds %= 3600
     minutes = seconds // 60
-    seconds %= 60      
+    seconds %= 60
     return "%d:%02d:%02d" % (hour, minutes, seconds)
 
 def get_pause(status):
@@ -1821,8 +1848,8 @@ def stop_and_restart():
 
 def get_image(title, pic, dur="Live"):
     newimage = "converted.jpg"
-    image = Image.open(pic) 
-    draw = ImageDraw.Draw(image) 
+    image = Image.open(pic)
+    draw = ImageDraw.Draw(image)
     font = ImageFont.truetype('./utils/font.ttf', 60)
     title = title[0:45]
     MAX_W = 1790
