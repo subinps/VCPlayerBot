@@ -1457,13 +1457,13 @@ async def get_playlist_str():
             tplaylist=Config.playlist[:25]
             pl=f"Listing first 25 songs of total {len(Config.playlist)} songs.\n"
             pl += f"▶️ **Playlist**: ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ\n" + "\n".join([
-                f"**{i}**. **🎸{x[1]}**\n   👤**Requested by:** {x[4]}"
+                f"**{i}**. **🎵{x[1]}**\n   👤**Requested by:** {x[4]}"
                 for i, x in enumerate(tplaylist)
                 ])
             tplaylist.clear()
         else:
             pl = f"▶️ **Playlist**: ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ\n" + "\n".join([
-                f"**{i}**. **🎸{x[1]}**\n   👤**Requested by:** {x[4]}\n"
+                f"**{i}**. **🎵{x[1]}**\n   👤**Requested by:** {x[4]}\n"
                 for i, x in enumerate(Config.playlist)
             ])
     return pl
@@ -1523,28 +1523,28 @@ async def settings_panel():
     reply_markup=InlineKeyboardMarkup(
         [
             [
-               InlineKeyboardButton(f"Player Mode", callback_data='info_mode'),
+               InlineKeyboardButton(f"🎥 Player Mode", callback_data='info_mode'),
                InlineKeyboardButton(f"{'🔂 Non Stop Playback' if Config.IS_LOOP else '▶️ Play and Leave'}", callback_data='is_loop'),
             ],
             [
                 InlineKeyboardButton("🎞 Video", callback_data=f"info_video"),
-                InlineKeyboardButton(f"{'📺 Enabled' if Config.IS_VIDEO else '🎙 Disabled'}", callback_data='is_video'),
+                InlineKeyboardButton(f"{'☑️ Enabled' if Config.IS_VIDEO else '✖️ Disabled'}", callback_data='is_video'),
             ],
             [
-                InlineKeyboardButton("🤴 Admin Only", callback_data=f"info_admin"),
-                InlineKeyboardButton(f"{'🔒 Enabled' if Config.ADMIN_ONLY else '🔓 Disabled'}", callback_data='admin_only'),
+                InlineKeyboardButton("🧙 Admin Only", callback_data=f"info_admin"),
+                InlineKeyboardButton(f"{'☑️ Enabled' if Config.ADMIN_ONLY else '✖️ Disabled'}", callback_data='admin_only'),
             ],
             [
-                InlineKeyboardButton("🪶 Edit Title", callback_data=f"info_title"),
-                InlineKeyboardButton(f"{'✏️ Enabled' if Config.EDIT_TITLE else '🚫 Disabled'}", callback_data='edit_title'),
+                InlineKeyboardButton("🖋 Edit Title", callback_data=f"info_title"),
+                InlineKeyboardButton(f"{'☑️ Enabled' if Config.EDIT_TITLE else '✖️ Disabled'}", callback_data='edit_title'),
             ],
             [
                 InlineKeyboardButton("🔀 Shuffle Mode", callback_data=f"info_shuffle"),
-                InlineKeyboardButton(f"{'✅ Enabled' if Config.SHUFFLE else '🚫 Disabled'}", callback_data='set_shuffle'),
+                InlineKeyboardButton(f"{'☑️ Enabled' if Config.SHUFFLE else '✖️ Disabled'}", callback_data='set_shuffle'),
             ],
             [
-                InlineKeyboardButton("👮 Auto Reply (PM Permit)", callback_data=f"info_reply"),
-                InlineKeyboardButton(f"{'✅ Enabled' if Config.REPLY_PM else '🚫 Disabled'}", callback_data='reply_msg'),
+                InlineKeyboardButton("🔒 Pm Permit", callback_data=f"info_reply"),
+                InlineKeyboardButton(f"{'☑️ Enabled' if Config.REPLY_PM else '✖️ Disabled'}", callback_data='reply_msg'),
             ],
             [
                 InlineKeyboardButton('🗑 Close', callback_data='close'),
@@ -1560,7 +1560,7 @@ async def recorder_settings():
     reply_markup=InlineKeyboardMarkup(
         [
         [
-            InlineKeyboardButton(f"{'⏹ Stop Recording' if Config.IS_RECORDING else '⏺ Start Recording'}", callback_data='record'),
+            InlineKeyboardButton(f"{'⏸ Stop Recording' if Config.IS_RECORDING else '⏹ Start Recording'}", callback_data='record'),
         ],
         [
             InlineKeyboardButton(f"Record Video", callback_data='info_videorecord'),
